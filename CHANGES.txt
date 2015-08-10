@@ -1,0 +1,15 @@
+v2.3.8 (09 August 2015)
+    - vnstat: no 'today' validation. vnstat is there but has no data for today. Avoid php errors.
+    - whois: vulnerability fix, and now only looks at $_REQUEST (no get/post)
+    - some aesthetics.
+
+v2.3.7 (30 July 2015)
+    - maintenance, a bit of optimization, small color enhancements
+    - put configuration in a separate file.
+
+v2.3.6 (25 june 2015)
+    - some CSS & HTML modifications to better display longer header server status.
+    - started writting CHANGES.txt
+
+v2.3.5 (10 July 2014)
+    -nothing written.
