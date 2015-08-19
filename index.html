@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
+<head>
     <meta charset="UTF-8">
     <title>Vpsinfo by claude-ws01</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,139 +8,171 @@
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">Vpsinfo</h1>
-      <h2 class="project-tagline">Vpsinfo is a Linux server monitoring script, written in PHP, that provides web access to system status information.</h2>
-      <a href="https://github.com/claude-ws01/vpsinfo" class="btn">View on GitHub</a>
-      <a href="https://github.com/claude-ws01/vpsinfo/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/claude-ws01/vpsinfo/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+</head>
+<body>
+<section class="page-header">
+    <h1 class="project-name" style="display:none;">Vpsinfo</h1>
+    <p><img src="images/vpsinfo_logo.png" alt="vpsinfo_logo.png"></p>
 
-    <section class="main-content">
-      <p><img src="images/vpsinfo_logo.png" alt="vpsinfo_logo.png"></p>
+    <h2 class="project-tagline">Vpsinfo is a Linux server monitoring script, written in PHP, that provides web access to system status information.</h2>
+    <a href="https://github.com/claude-ws01/vpsinfo" class="btn">View on GitHub</a>
+    <a href="https://github.com/claude-ws01/vpsinfo/zipball/master" class="btn">Download .zip</a>
+    <a href="https://github.com/claude-ws01/vpsinfo/tarball/master" class="btn">Download .tar.gz</a>
+</section>
 
-<h5>
-<a id="table-of-contents" class="anchor" href="#table-of-contents" aria-hidden="true"><span class="octicon octicon-link"></span></a>Table of Contents</h5>
+<section class="main-content">
+    <p><img src="images/vpsinfo_logo.png" alt="vpsinfo_logo.png"></p>
 
-<ul>
-<li><a href="#intro">Introduction</a></li>
-<li><a href="#require">General Requirements</a></li>
-<li><a href="#installation">Installation</a></li>
-<li><a href="#require_bloc">Requirements for Specific Blocs</a></li>
-<li><a href="#config">Configuration</a></li>
-<li><a href="#screens">Screenshots</a></li>
-</ul>
+    <h5>
+        <a id="table-of-contents"
+           class="anchor"
+           href="#table-of-contents"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Table of Contents</h5>
 
-<p><a name="intro"></a></p>
+    <ul>
+        <li><a href="#intro">Introduction</a></li>
+        <li><a href="#require">General Requirements</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#require_bloc">Requirements for Specific Blocs</a></li>
+        <li><a href="#config">Configuration</a></li>
+        <li><a href="#screens">Screenshots</a></li>
+    </ul>
 
-<h1>
-<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h1>
+    <p><a name="intro"></a></p>
 
-<p>Vpsinfo is a Linux server monitoring script, written in PHP, that provides web access to system status information. It gathers the output from several common Linux commands into one web page, providing a quick overview of the system's current state.</p>
+    <h1>
+        <a id="introduction"
+           class="anchor"
+           href="#introduction"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h1>
 
-<p>While designed for use on a Linux Virtual Private Server (Virtuozzo or OpenVZ), Vpsinfo also works fine on a dedicated server. When installed on a dedicated machine VPS-specific information is automatically excluded.</p>
+    <p>Vpsinfo is a Linux server monitoring script, written in PHP, that provides web access to system status information. It gathers the output from several common Linux commands into one web page, providing a quick overview of the system's current state.</p>
 
-<p>Please note that, on Virtuozzo and OpenVZ servers, the small beanc helper app may be required to access VPS status information.</p>
+    <p>While designed for use on a Linux Virtual Private Server (Virtuozzo or OpenVZ), Vpsinfo also works fine on a dedicated server. When installed on a dedicated machine VPS-specific information is automatically excluded.</p>
 
-<p>vpsinfo shows the following outputs:</p>
+    <p>Please note that, on Virtuozzo and OpenVZ servers, the small beanc helper app may be required to access VPS status information.</p>
 
-<ul>
-<li><code>top</code></li>
-<li>
-<code>/proc/user_beancounters</code> (VPS resources)</li>
-<li>
-<code>netstat -nt</code> (current TCP connections)</li>
-<li>
-<code>netstat -ntl</code> (listening TCP ports)</li>
-<li>
-<code>pstree</code> (tree view of running processes)</li>
-<li>
-<code>ls -a /tmp</code> (and ls -al /tmp )</li>
-<li>
-<code>vnstat</code> (network traffic at the interface)</li>
-<li>
-<code>mytop</code> (MySQL stats)</li>
-<li>
-<code>mysqlreport</code> (perl script, MySQL stats)</li>
-<li>Status of daemon processes</li>
-<li>Top summary section:
+    <p>vpsinfo shows the following outputs:</p>
 
-<ul>
-<li>Values for oomguarpages and privvmpages (free RAM and swap usage)</li>
-<li>Data transfer today through the network interface (from vnstat)</li>
-<li>Current number of TCP connections</li>
-<li>Web server threads, MySQL threads and queries (from mytop or mysqlreport)</li>
-<li>Disk usage</li>
-</ul>
-</li>
-</ul>
+    <ul>
+        <li><code>top</code></li>
+        <li>
+            <code>/proc/user_beancounters</code> (VPS resources)
+        </li>
+        <li>
+            <code>netstat -nt</code> (current TCP connections)
+        </li>
+        <li>
+            <code>netstat -ntl</code> (listening TCP ports)
+        </li>
+        <li>
+            <code>pstree</code> (tree view of running processes)
+        </li>
+        <li>
+            <code>ls -a /tmp</code> (and ls -al /tmp )
+        </li>
+        <li>
+            <code>vnstat</code> (network traffic at the interface)
+        </li>
+        <li>
+            <code>mytop</code> (MySQL stats)
+        </li>
+        <li>
+            <code>mysqlreport</code> (perl script, MySQL stats)
+        </li>
+        <li>Status of daemon processes</li>
+        <li>Top summary section:
 
-<h2>
-<a id="optional-third-party-software" class="anchor" href="#optional-third-party-software" aria-hidden="true"><span class="octicon octicon-link"></span></a>Optional Third-party Software</h2>
+            <ul>
+                <li>Values for oomguarpages and privvmpages (free RAM and swap usage)</li>
+                <li>Data transfer today through the network interface (from vnstat)</li>
+                <li>Current number of TCP connections</li>
+                <li>Web server threads, MySQL threads and queries (from mytop or mysqlreport)</li>
+                <li>Disk usage</li>
+            </ul>
+        </li>
+    </ul>
 
-<p>These applications are not required to run vpsinfo, but if installed they are used to gather additional information</p>
+    <h2>
+        <a id="optional-third-party-software"
+           class="anchor"
+           href="#optional-third-party-software"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Optional Third-party Software</h2>
 
-<ul>
-<li>vnstat (data transfert monitoring at the network interface) Highly recommended!</li>
-<li>mytop  (MySql monitoring)</li>
-<li>mysqlreport  (perl script, MySql monitoring).</li>
-</ul>
+    <p>These applications are not required to run vpsinfo, but if installed they are used to gather additional information</p>
 
-<p><a name="require"></a></p>
+    <ul>
+        <li>vnstat (data transfert monitoring at the network interface) Highly recommended!</li>
+        <li>mytop (MySql monitoring)</li>
+        <li>mysqlreport (perl script, MySql monitoring).</li>
+    </ul>
 
-<h1>
-<a id="general-requirements" class="anchor" href="#general-requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>General Requirements</h1>
+    <p><a name="require"></a></p>
 
-<ul>
-<li>Linux operating system</li>
-<li>webserver (<a href="http://nginx.org/">Nginx</a>, <a href="http://httpd.apache.org/">Apache</a> ...)</li>
-<li>PHP v5.4+</li>
-<li>Perl</li>
-<li>Gcc compiler (for beanc)</li>
-</ul>
+    <h1>
+        <a id="general-requirements"
+           class="anchor"
+           href="#general-requirements"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>General Requirements</h1>
 
-<p><a name="installation"></a></p>
+    <ul>
+        <li>Linux operating system</li>
+        <li>webserver (<a href="http://nginx.org/">Nginx</a>, <a href="http://httpd.apache.org/">Apache</a> ...)</li>
+        <li>PHP v5.4+</li>
+        <li>Perl</li>
+        <li>Gcc compiler (for beanc)</li>
+    </ul>
 
-<h1>
-<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h1>
+    <p><a name="installation"></a></p>
 
-<p>For the time being, installation documentation is limited to CentOS. Please share any relevant information you may have that may complete this documentation, and I will include it.</p>
+    <h1>
+        <a id="installation"
+           class="anchor"
+           href="#installation"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h1>
 
-<h2>
-<a id="perl" class="anchor" href="#perl" aria-hidden="true"><span class="octicon octicon-link"></span></a>Perl</h2>
+    <p>For the time being, installation documentation is limited to CentOS. Please share any relevant information you may have that may complete this documentation, and I will include it.</p>
 
-<p>Intallation on CentOS 6.x:</p>
+    <h2>
+        <a id="perl" class="anchor" href="#perl" aria-hidden="true"><span class="octicon octicon-link"></span></a>Perl
+    </h2>
 
-<div class="highlight highlight-bash"><pre>yum install \
+    <p>Intallation on CentOS 6.x:</p>
+
+    <div class="highlight highlight-bash"><pre>yum install \
 perl-DBI \
-perl-DBD-mysql --enablerepo=rpmforge-extras</pre></div>
+perl-DBD-mysql --enablerepo=rpmforge-extras</pre>
+    </div>
 
-<p>*<a href="http://repoforge.org/">rpmforge http://repoforge.org/</a>
-(other perl modules may be needed)</p>
+    <p>*<a href="http://repoforge.org/">rpmforge http://repoforge.org/</a>
+       (other perl modules may be needed)</p>
 
-<h2>
-<a id="gcc" class="anchor" href="#gcc" aria-hidden="true"><span class="octicon octicon-link"></span></a>Gcc</h2>
+    <h2>
+        <a id="gcc" class="anchor" href="#gcc" aria-hidden="true"><span class="octicon octicon-link"></span></a>Gcc</h2>
 
-<p>Intallation on CentOS 6.x:</p>
+    <p>Intallation on CentOS 6.x:</p>
 
-<div class="highlight highlight-bash"><pre>yum install \
+    <div class="highlight highlight-bash"><pre>yum install \
 gcc \
 glibc-devel \
-glibc-headers</pre></div>
+glibc-headers</pre>
+    </div>
 
-<p>(may be incomplete)</p>
+    <p>(may be incomplete)</p>
 
-<h2>
-<a id="web-server" class="anchor" href="#web-server" aria-hidden="true"><span class="octicon octicon-link"></span></a>Web Server</h2>
+    <h2>
+        <a id="web-server"
+           class="anchor"
+           href="#web-server"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Web Server</h2>
 
-<h3>
-<a id="nginx" class="anchor" href="#nginx" aria-hidden="true"><span class="octicon octicon-link"></span></a>Nginx</h3>
+    <h3>
+        <a id="nginx" class="anchor" href="#nginx" aria-hidden="true"><span class="octicon octicon-link"></span></a>Nginx
+    </h3>
 
-<p>Server configuration bloc example:</p>
+    <p>Server configuration bloc example:</p>
 
-<div class="highlight highlight-nginx"><pre><span class="pl-k">server</span> {
+    <div class="highlight highlight-nginx"><pre><span class="pl-k">server</span> {
     <span class="pl-k">listen</span>          123.45.67.89:443 ssl;
     <span class="pl-k">server_name</span>     VPSINFO.MYSERVER.COM;
     <span class="pl-k">root</span>            /var/www/VPSINFO;
@@ -166,7 +198,8 @@ glibc-headers</pre></div>
     <span class="pl-k">ssl_prefer_server_ciphers</span>  <span class="pl-c1"> on</span>;
 
     <span class="pl-k">location</span> <span class="pl-en">/ </span>{
-        <span class="pl-k">try_files</span> <span class="pl-smi">$uri</span> <span class="pl-smi">$uri</span>/ /index.php?<span class="pl-smi">$args</span>;
+        <span class="pl-k">try_files</span> <span class="pl-smi">$uri</span> <span class="pl-smi">$uri</span>/ /index.php?<span
+                class="pl-smi">$args</span>;
     }
 
     <span class="pl-c">### FAST CGI CONFIGURATION</span>
@@ -186,208 +219,268 @@ glibc-headers</pre></div>
 
 
     <span class="pl-c">### LOGGING ###</span>
-}</pre></div>
+}</pre>
+    </div>
+
+    <p>Note the
+        <code>ssl_client_certificate</code>. This is actually the server's public certificate, and the private key is installed in my desktop/browser. The first time, in a single run of my browser, the server request a certificate; the browser is aware of my private key and offers to send one of my keys, which I do; then I gain access to my VpsInfo page.
+    </p>
+
+    <p>The <code>ssl_verify_client = on</code> prevents access without a verified certificate.</p>
+
+    <p>Using a certificate for authentication (vs password) avoids the possibility of password brute force.</p>
+
+    <p><a name="require_bloc"></a></p>
 
-<p>Note the <code>ssl_client_certificate</code>. This is actually the server's public certificate, and the private key is installed in my desktop/browser. The first time, in a single run of my browser, the server request a certificate; the browser is aware of my private key and offers to send one of my keys, which I do; then I gain access to my VpsInfo page.</p>
+    <h1>
+        <a id="requirements-for-specific-blocs"
+           class="anchor"
+           href="#requirements-for-specific-blocs"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements for Specific Blocs</h1>
 
-<p>The <code>ssl_verify_client = on</code> prevents access without a verified certificate.</p>
+    <h2>
+        <a id="vnstat" class="anchor" href="#vnstat" aria-hidden="true"><span class="octicon octicon-link"></span></a><a
+            href="http://humdi.net/vnstat/">vnstat</a>
+    </h2>
 
-<p>Using a certificate for authentication (vs password) avoids the possibility of password brute force.</p>
+    <p>Installation on CentOS 6.x:</p>
+
+    <div class="highlight highlight-bash">
+        <pre>$ yum install vnstat --enablerepo=rpmforge</pre>
+    </div>
+
+    <p>Configuring vnstat:</p>
 
-<p><a name="require_bloc"></a></p>
+    <ul>
+        <li>get the name of the network interface:</li>
+    </ul>
+
+    <div class="highlight highlight-bash">
+        <pre>$ ifconfig</pre>
+    </div>
+
+    <p>you should see a <code>venet0</code> or a <code>eth0</code> for KVM's (do not use <code>venet0:x</code>).</p>
+
+    <ul>
+        <li><p>update <code>/etc/sysconfig/vnstat</code>:<br/>
+            <code>VNSTAT_OPTIONS="-i venet0"</code></p></li>
+        <li><p>you may also need to update <code>/etc/vnstat.conf</code>:<br/>
+            <code>interface "venet0"</code></p></li>
+        <li><p>make sure <code>/etc/cron.d/vnstat</code> exists and contains:<br/>
+            <code>*/5 * * * * vnstat /usr/sbin/vnstat.cron</code></p></li>
+        <li>
+            you can test with:<br/>
+
+            <div class="highlight highlight-bash">
+                <pre>$ vnstat -tr</pre>
+            </div>
+        </li>
+    </ul>
+
+    <h2>
+        <a id="mysql-report"
+           class="anchor"
+           href="#mysql-report"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>MySQL Report</h2>
+
+    <p>The report should use the included <code>mysqlreport_a.pl</code>. For MySql earlier to v5.0,
+        <code>mytop</code> seems to be the other option.</p>
 
-<h1>
-<a id="requirements-for-specific-blocs" class="anchor" href="#requirements-for-specific-blocs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements for Specific Blocs</h1>
+    <h3>
+        <a id="mysqlreport-a"
+           class="anchor"
+           href="#mysqlreport-a"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>mysqlreport A</h3>
 
-<h2>
-<a id="vnstat" class="anchor" href="#vnstat" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="http://humdi.net/vnstat/">vnstat</a>
-</h2>
+    <p>The included mysqlreport_a.pl is a modified version of mysqlreport (2008) compatible with MySQL/Percona v5+.</p>
+
+    <h3>
+        <a id="mysqlreport-b"
+           class="anchor"
+           href="#mysqlreport-b"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>mysqlreport B</h3>
 
-<p>Installation on CentOS 6.x:</p>
+    <p>The included mysqlreport_b.pl is a modified version of
+        <a href="https://github.com/jb-boin/mariadb/blob/5.5.30/debian/additions/mysqlreport">mysqlreport (2015)</a> compatible with MySQL/Percona v5+ &amp; MariaDB (according to the
+        <a href="https://mariadb.atlassian.net/browse/MDEV-573">author</a>).</p>
 
-<div class="highlight highlight-bash"><pre>$ yum install vnstat --enablerepo=rpmforge</pre></div>
+    <h3>
+        <a id="mytop" class="anchor" href="#mytop" aria-hidden="true"><span class="octicon octicon-link"></span></a><a
+            href="http://jeremy.zawodny.com/mysql/mytop/">mytop</a>
+    </h3>
 
-<p>Configuring vnstat:</p>
+    <p>Installation on CentOS 6.x:</p>
 
-<ul>
-<li>get the name of the network interface:</li>
-</ul>
+    <div class="highlight highlight-bash">
+        <pre>$ yum install mytop --enablerepo=epel</pre>
+    </div>
 
-<div class="highlight highlight-bash"><pre>$ ifconfig</pre></div>
+    <p>Note: this option is untested. Mytop was built for MySQL 3.22.x, 3.23.x, and 4.x., but is said to
+        <a href="https://www.howtoforge.com/tutorial/mytop-mysql-database-monitoring/#about-mytop">work</a> with v5.0 .
+    </p>
 
-<p>you should see a <code>venet0</code> or a <code>eth0</code> for KVM's (do not use <code>venet0:x</code>).</p>
+    <h2>
+        <a id="beanc" class="anchor" href="#beanc" aria-hidden="true"><span class="octicon octicon-link"></span></a>beanc
+    </h2>
 
-<ul>
-<li><p>update <code>/etc/sysconfig/vnstat</code>:
-<code>VNSTAT_OPTIONS="-i venet0"</code></p></li>
-<li><p>you may also need to update <code>/etc/vnstat.conf</code>:
-<code>interface "venet0"</code></p></li>
-<li><p>make sure <code>/etc/cron.d/vnstat</code> exists and contains:
-<code>*/5 * * * * vnstat /usr/sbin/vnstat.cron</code></p></li>
-<li><p>you can test with:</p></li>
-</ul>
+    <p>beanc is a 10 lines C program that fetches the old, but still valid,
+        <a href="https://wiki.openvz.org/Proc/user_beancounters">/proc/user_beancounters</a> data on a Linux
+        <a href="http://www.odin.com/products/virtuozzo/">Virtuozzo</a> v.3 or
+        <a href="http://openvz.org/">OpenVZ</a> VPS (Virtual Private Server).</p>
 
-<div class="highlight highlight-bash"><pre>$ vnstat -tr</pre></div>
+    <p>Installation on CentOS 6.x:</p>
 
-<h2>
-<a id="mysql-report" class="anchor" href="#mysql-report" aria-hidden="true"><span class="octicon octicon-link"></span></a>MySQL Report</h2>
+    <div class="highlight highlight-bash"><pre>$ <span class="pl-c1">cd</span> VPSINFO-FOLDER-PATH/installation/beanc/
+$ sh install.sh</pre>
+    </div>
 
-<p>The report should use the included <code>mysqlreport_a.pl</code>. For MySql earlier to v5.0, <code>mytop</code> seems to be the other option.</p>
+    <p><a name="config"></a></p>
 
-<h3>
-<a id="mysqlreport-a" class="anchor" href="#mysqlreport-a" aria-hidden="true"><span class="octicon octicon-link"></span></a>mysqlreport A</h3>
-
-<p>The included mysqlreport_a.pl is a modified version of mysqlreport (2008) compatible with MySQL/Percona v5+.</p>
-
-<h3>
-<a id="mysqlreport-b" class="anchor" href="#mysqlreport-b" aria-hidden="true"><span class="octicon octicon-link"></span></a>mysqlreport B</h3>
-
-<p>The included mysqlreport_b.pl is a modified version of <a href="https://github.com/jb-boin/mariadb/blob/5.5.30/debian/additions/mysqlreport">mysqlreport (2015)</a> compatible with MySQL/Percona v5+ &amp; MariaDB (according to the <a href="https://mariadb.atlassian.net/browse/MDEV-573">author</a>).</p>
-
-<h3>
-<a id="mytop" class="anchor" href="#mytop" aria-hidden="true"><span class="octicon octicon-link"></span></a><a href="http://jeremy.zawodny.com/mysql/mytop/">mytop</a>
-</h3>
-
-<p>Installation on CentOS 6.x:</p>
-
-<div class="highlight highlight-bash"><pre>$ yum install mytop --enablerepo=epel</pre></div>
-
-<p>Note: this option is untested. Mytop was built for MySQL 3.22.x, 3.23.x, and 4.x., but is said to <a href="https://www.howtoforge.com/tutorial/mytop-mysql-database-monitoring/#about-mytop">work</a> with v5.0 .</p>
-
-<h2>
-<a id="beanc" class="anchor" href="#beanc" aria-hidden="true"><span class="octicon octicon-link"></span></a>beanc</h2>
-
-<p>beanc is a 10 lines C program that fetches the old, but still valid, <a href="https://wiki.openvz.org/Proc/user_beancounters">/proc/user_beancounters</a> data on a Linux <a href="http://www.odin.com/products/virtuozzo/">Virtuozzo</a> v.3 or <a href="http://openvz.org/">OpenVZ</a> VPS (Virtual Private Server).</p>
-
-<p>Installation on CentOS 6.x:</p>
-
-<div class="highlight highlight-bash"><pre>$ <span class="pl-c1">cd</span> VPSINFO-FOLDER-PATH/installation/beanc/
-$ sh install.sh</pre></div>
-
-<p><a name="config"></a></p>
-
-<h1>
-<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration</h1>
-
-<p>This is a partial list of configuration entries. For the complete list and description, please refer to <code>config.php</code>.</p>
-
-<p><strong>$vnstat</strong><br/>
-<code>0 = disabled</code><br/>
-<code>1 = enabled</code></p>
-
-<p><strong>$mysql_mon</strong><br/>
-<code>0 = none</code><br/>
-<code>1 = mytop</code><br/>
-<code>2 = mysqlreport_a   (mysql/percona)</code><br/>
-<code>3 = mysqlreport_b   (mysql/percona, MariaDB)</code></p>
-
-<p><strong>$mysql_mon</strong><br/>
-<code>0 = none</code><br/>
-<code>1 = mytop</code><br/>
-<code>2 = mysqlreport_a   (mysql/percona)</code><br/>
-<code>3 = mysqlreport_b   (mysql/percona, MariaDB)</code></p>
-
-<p><strong>Database Access</strong><br/>
-Not needed if <code>$mysql_mon = 0</code>.</p>
-
-<p>Socket has priority if defined.
-<code>$my_socket = '/var/lib/mysql/mysql.sock';</code></p>
-
-<p>Then host IP if no socket. Avoid 'localhost', save a dns lookup.<br/>
-<code>$my_host   = '127.0.0.1';</code>
-<code>$my_port   = '3306';</code></p>
-
-<p>Only required by mytop<br/>
-<code>$my_db     = 'mysql';</code></p>
-
-<p>And authentication.<br/>
-<code>$my_user   = 'USERNAME';</code><br/>
-<code>$my_pass   = 'PASSWORD';</code><br/>
-<code>$userhome = '/USERNAME';</code></p>
-
-<p><strong>$processes</strong>
-<code>crond dovecot nginx master memcached monitorix mysqld php-fpm rsyslogd sshd vsftpd miniserv</code>
-Process names that appear in a <code>ps -e</code> command output are shown as 'up'.</p>
-
-<p><a name="screens"></a></p>
-
-<h1>
-<a id="screenshots" class="anchor" href="#screenshots" aria-hidden="true"><span class="octicon octicon-link"></span></a>Screenshots</h1>
-
-<h2>
-<a id="main-page" class="anchor" href="#main-page" aria-hidden="true"><span class="octicon octicon-link"></span></a>Main page</h2>
-
-<p><img src="images/main.png" alt="main.png"></p>
-
-<h2>
-<a id="pop-ups" class="anchor" href="#pop-ups" aria-hidden="true"><span class="octicon octicon-link"></span></a>Pop-ups</h2>
-
-<h3>
-<a id="top" class="anchor" href="#top" aria-hidden="true"><span class="octicon octicon-link"></span></a>Top</h3>
-
-<p><img src="images/top_ps-aux_a.png" alt="top_ps-aux_a.png"><br/>
-Popup:<br/>
-<img src="images/top_ps-aux_b.png" alt="top_ps-aux_b.png"></p>
-
-<p><img src="images/top_ps-aux_mem_a.png" alt="top_ps-aux_mem_a.png"><br/>
-Popup:<br/>
-<img src="images/top_ps-aux_mem_b.png" alt="top_ps-aux_mem_b.png"></p>
-
-<p><img src="images/top_logged_in_user_a.png" alt="top_logged_in_user_a.png"><br/>
-Popup:<br/>
-<img src="images/top_logged_in_user_b.png" alt="top_logged_in_user_b.png"></p>
-
-<h3>
-<a id="netstat" class="anchor" href="#netstat" aria-hidden="true"><span class="octicon octicon-link"></span></a>Netstat</h3>
-
-<p><img src="images/netstat_listening_a.png" alt="netstat_listening_a.png"><br/>
-Popup:<br/>
-<img src="images/netstat_listening_b.png" alt="netstat_listening_b.png"></p>
-
-<p><img src="images/netstat_portlist_a.png" alt="netstat_portlist_a.png"><br/>
-Popup:<br/>
-<img src="images/netstat_portlist_b.png" alt="netstat_portlist_b.png"></p>
-
-<h4>
-<a id="whois" class="anchor" href="#whois" aria-hidden="true"><span class="octicon octicon-link"></span></a>Whois</h4>
-
-<p>In the netstat list:<br/>
-<img src="images/netstat_whois_a_foreign_a.png" alt="netstat_whois_a_foreign_a.png"><br/>
-In the footer of the netstat bloc:<br/>
-<img src="images/netstat_whois_a_lookup_a.png" alt="netstat_whois_a_lookup_a.png"><br/>
-Popup:<br/>
-<img src="images/netstat_whois_b.png" alt="netstat_whois_b.png"></p>
-
-<h3>
-<a id="vnstat-1" class="anchor" href="#vnstat-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Vnstat</h3>
-
-<p>Clic any one:<br/>
-<img src="images/vnstat_a_days.png" alt="vnstat_a_days.png"> <img src="images/vnstat_a_month.png" alt="vnstat_a_month.png"> <img src="images/vnstat_a_sample.png" alt="vnstat_a_sample.png"><br/>
-Popup:<br/>
-<img src="images/vnstat_b_month.png" alt="vnstat_b_month.png"></p>
-
-<h3>
-<a id="mysql-report-1" class="anchor" href="#mysql-report-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>MySQL Report</h3>
-
-<p><img src="images/mysql_full_report_a.png" alt="mysql_full_report_a.png"><br/>
-Popup:<br/>
-<img src="images/mysql_full_report_b.png" alt="mysql_full_report_b.png"></p>
-
-<h3>
-<a id="temp-files" class="anchor" href="#temp-files" aria-hidden="true"><span class="octicon octicon-link"></span></a>Temp files</h3>
-
-<p><img src="images/ls-al%7Etmp_a.png" alt="ls-al~tmp_a.png"><br/>
-Popup:<br/>
-<img src="images/ls-al%7Etmp_b.png" alt="ls-al~tmp_b.png"></p>
-
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/claude-ws01/vpsinfo">Vpsinfo</a> is maintained by <a href="https://github.com/claude-ws01">claude-ws01</a>.</span>
-
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
-
-    </section>
-
-  
-  </body>
+    <h1>
+        <a id="configuration"
+           class="anchor"
+           href="#configuration"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration</h1>
+
+    <p>This is a partial list of configuration entries. For the complete list and description, please refer to
+        <code>config.php</code>.</p>
+
+    <p><strong>$vnstat</strong><br/>
+        <code>0 = disabled</code><br/>
+        <code>1 = enabled</code></p>
+
+    <p><strong>$mysql_mon</strong><br/>
+        <code>0 = none</code><br/>
+        <code>1 = mytop</code><br/>
+        <code>2 = mysqlreport_a (mysql/percona)</code><br/>
+        <code>3 = mysqlreport_b (mysql/percona, MariaDB)</code></p>
+
+    <p><strong>$mysql_mon</strong><br/>
+        <code>0 = none</code><br/>
+        <code>1 = mytop</code><br/>
+        <code>2 = mysqlreport_a (mysql/percona)</code><br/>
+        <code>3 = mysqlreport_b (mysql/percona, MariaDB)</code></p>
+
+    <p><strong>Database Access</strong><br/>
+        Not needed if <code>$mysql_mon = 0</code>.</p>
+
+    <p>Socket has priority if defined.<br/>
+        <code>$my_socket = '/var/lib/mysql/mysql.sock';</code></p>
+
+    <p>Then host IP if no socket. Avoid 'localhost', save a dns lookup.<br/>
+        <code>$my_host = '127.0.0.1';</code><br/>
+        <code>$my_port = '3306';</code></p>
+
+    <p>Only required by mytop<br/>
+        <code>$my_db = 'mysql';</code></p>
+
+    <p>And authentication.<br/>
+        <code>$my_user = 'USERNAME';</code><br/>
+        <code>$my_pass = 'PASSWORD';</code><br/>
+        <code>$userhome = '/USERNAME';</code></p>
+
+    <p><strong>$processes</strong><br/>
+        <code>crond dovecot nginx master memcached monitorix mysqld php-fpm rsyslogd sshd vsftpd miniserv</code><br/>
+        Process names that appear in a <code>ps -e</code> command output are shown as 'up'.</p>
+
+    <p><a name="screens"></a></p>
+
+    <h1>
+        <a id="screenshots"
+           class="anchor"
+           href="#screenshots"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Screenshots</h1>
+
+    <h2>
+        <a id="main-page" class="anchor" href="#main-page" aria-hidden="true"><span class="octicon octicon-link"></span></a>Main page
+    </h2>
+
+    <p><img src="images/main.png" alt="main.png"></p>
+
+    <h2>
+        <a id="pop-ups" class="anchor" href="#pop-ups" aria-hidden="true"><span class="octicon octicon-link"></span></a>Pop-ups
+    </h2>
+
+    <h3>
+        <a id="top" class="anchor" href="#top" aria-hidden="true"><span class="octicon octicon-link"></span></a>Top</h3>
+
+    <p><img src="images/top_ps-aux_a.png" alt="top_ps-aux_a.png"><br/>
+        Popup:<br/>
+        <img src="images/top_ps-aux_b.png" alt="top_ps-aux_b.png"></p>
+
+    <p><img src="images/top_ps-aux_mem_a.png" alt="top_ps-aux_mem_a.png"><br/>
+        Popup:<br/>
+        <img src="images/top_ps-aux_mem_b.png" alt="top_ps-aux_mem_b.png"></p>
+
+    <p><img src="images/top_logged_in_user_a.png" alt="top_logged_in_user_a.png"><br/>
+        Popup:<br/>
+        <img src="images/top_logged_in_user_b.png" alt="top_logged_in_user_b.png"></p>
+
+    <h3>
+        <a id="netstat" class="anchor" href="#netstat" aria-hidden="true"><span class="octicon octicon-link"></span></a>Netstat
+    </h3>
+
+    <p><img src="images/netstat_listening_a.png" alt="netstat_listening_a.png"><br/>
+        Popup:<br/>
+        <img src="images/netstat_listening_b.png" alt="netstat_listening_b.png"></p>
+
+    <p><img src="images/netstat_portlist_a.png" alt="netstat_portlist_a.png"><br/>
+        Popup:<br/>
+        <img src="images/netstat_portlist_b.png" alt="netstat_portlist_b.png"></p>
+
+    <h4>
+        <a id="whois" class="anchor" href="#whois" aria-hidden="true"><span class="octicon octicon-link"></span></a>Whois
+    </h4>
+
+    <p>In the netstat list:<br/>
+        <img src="images/netstat_whois_a_foreign_a.png" alt="netstat_whois_a_foreign_a.png"><br/>
+       In the footer of the netstat bloc:<br/>
+        <img src="images/netstat_whois_a_lookup_a.png" alt="netstat_whois_a_lookup_a.png"><br/>
+       Popup:<br/>
+        <img src="images/netstat_whois_b.png" alt="netstat_whois_b.png"></p>
+
+    <h3>
+        <a id="vnstat-1"
+           class="anchor"
+           href="#vnstat-1"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Vnstat</h3>
+
+    <p>Clic any one:<br/>
+        <img src="images/vnstat_a_days.png" alt="vnstat_a_days.png"> <img src="images/vnstat_a_month.png"
+                                                                          alt="vnstat_a_month.png">
+        <img src="images/vnstat_a_sample.png" alt="vnstat_a_sample.png"><br/>
+       Popup:<br/>
+        <img src="images/vnstat_b_month.png" alt="vnstat_b_month.png"></p>
+
+    <h3>
+        <a id="mysql-report-1"
+           class="anchor"
+           href="#mysql-report-1"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>MySQL Report</h3>
+
+    <p><img src="images/mysql_full_report_a.png" alt="mysql_full_report_a.png"><br/>
+        Popup:<br/>
+        <img src="images/mysql_full_report_b.png" alt="mysql_full_report_b.png"></p>
+
+    <h3>
+        <a id="temp-files"
+           class="anchor"
+           href="#temp-files"
+           aria-hidden="true"><span class="octicon octicon-link"></span></a>Temp files</h3>
+
+    <p><img src="images/ls-al%7Etmp_a.png" alt="ls-al~tmp_a.png"><br/>
+        Popup:<br/>
+        <img src="images/ls-al%7Etmp_b.png" alt="ls-al~tmp_b.png"></p>
+
+    <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/claude-ws01/vpsinfo">Vpsinfo</a> is maintained by <a
+                href="https://github.com/claude-ws01">claude-ws01</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a
+                href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+    </footer>
+
+</section>
+
+</body>
 </html>
