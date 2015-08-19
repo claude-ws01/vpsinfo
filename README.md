@@ -1,9 +1,9 @@
 ![vpsinfo_logo.png](doc/images/vpsinfo_logo.png)
 # Introduction
 
-vpsinfo is a Linux server monitoring script, written in PHP, that provides web access to system status information. It gathers the output from several common Linux commands into one web page, providing a quick overview of the system's current state.
+Vpsinfo is a Linux server monitoring script, written in PHP, that provides web access to system status information. It gathers the output from several common Linux commands into one web page, providing a quick overview of the system's current state.
 
-While designed for use on a Linux Virtuozzo or OpenVZ VPS (Virtual Private Server), vpsinfo also works fine on a dedicated server. When installed on a dedicated machine VPS-specific information is automatically excluded.
+While designed for use on a Linux Virtual Private Server (Virtuozzo or OpenVZ), Vpsinfo also works fine on a dedicated server. When installed on a dedicated machine VPS-specific information is automatically excluded.
 
 Please note that, on Virtuozzo and OpenVZ servers, the small beanc helper app may be required to access VPS status information.
 

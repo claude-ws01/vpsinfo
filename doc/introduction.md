@@ -26,7 +26,6 @@ vpsinfo shows the following outputs:
 	- Disk usage
 
 
-
 ## Optional Third-party Software
 These applications are not required to run vpsinfo, but if installed they are used to gather additional information
 - vnstat (data transfert monitoring at the network interface) Highly recommended!
