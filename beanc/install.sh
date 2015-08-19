@@ -1,11 +1,20 @@
 #!/bin/bash
-# Compile & setuid beanc, a C program to read Virtuozzo 3.0 user_beancounters
+
+# part of VPSinfo https://github.com/claude-ws01/vpsinfo
+#
+# Compile & setuid beanc, a C program to read Virtuozzo 3.0 & openVZ user_beancounters
+#
 # Concept & bean.c source by mkhs. Thanks!
 # Installation script by Douglas Robbins.
-# See http://www.labradordata.ca/home/35
-# Modified 12 Aug 2006 to remove dependency on 'which' utility.
-# modified 2014, Claude Nadon.
 #
+# Modified 12 Aug 2006 to remove dependency on 'which' utility.
+# modified 2014-15, Claude Nadon.
+
+if [ ! -e '/proc/user_beancounters' ]; then
+    echo 'Sorry, no bean counters here'
+    exit 0
+fi
+
 beans=`beanc 2> /dev/null`
 if [ "$beans" ]
 	then

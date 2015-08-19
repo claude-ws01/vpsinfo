@@ -1,10 +1,11 @@
 ![vpsinfo_logo.png](images/vpsinfo_logo.png)
 
 
-
+(updated: 2015-08-20)
 ##### Table of Contents
 * [Introduction](#intro)
 * [General Requirements](#require)
+* [Quick Install](#quick_install)
 * [Installation](#installation)
 * [Requirements for Specific Blocs](#require_bloc)
 * [Configuration](#config)
@@ -18,13 +19,13 @@
 <a name="intro"/>
 # Introduction
 
-Vpsinfo is a Linux server monitoring script, written in PHP, that provides web access to system status information. It gathers the output from several common Linux commands into one web page, providing a quick overview of the system's current state.
+VPSinfo is a Linux server monitoring script, written in PHP, that provides web access to system status information. It gathers the output from several common Linux commands into one web page, providing a quick overview of the system's current state.
 
-While designed for use on a Linux Virtual Private Server (Virtuozzo or OpenVZ), Vpsinfo also works fine on a dedicated server. When installed on a dedicated machine VPS-specific information is automatically excluded.
+While designed for use on a Linux Virtual Private Server (Virtuozzo or OpenVZ), VPSinfo also works fine on a dedicated server. When installed on a dedicated machine VPS-specific information is automatically excluded.
 
 Please note that, on Virtuozzo and OpenVZ servers, the small beanc helper app may be required to access VPS status information.
 
-vpsinfo shows the following outputs:
+VPSinfo shows the following outputs:
 - `top`
 - `/proc/user_beancounters` (VPS resources)
 - `netstat -nt` (current TCP connections)
@@ -43,8 +44,8 @@ vpsinfo shows the following outputs:
 	- Disk usage
 
 
-## Optional Third-party Software
-These applications are not required to run vpsinfo, but if installed they are used to gather additional information
+#### Optional Third-party Software
+These applications are not required to run VPSinfo, but if installed they are used to gather additional information
 - vnstat (data transfert monitoring at the network interface) Highly recommended!
 - mytop  (MySql monitoring)
 - mysqlreport  (perl script, MySql monitoring).
@@ -56,6 +57,16 @@ These applications are not required to run vpsinfo, but if installed they are us
 - PHP v5.4+
 - Perl
 - Gcc compiler (for beanc)
+
+
+<a name="quick_install"/>
+# Quick Install
+For the anxious ones:
+- Copy VPSinfo's folder in your web server directory, with proper user/permission.
+- Configure and reload your webserver.
+- Test it!
+
+From there you should see what's missing to complete your installation.
 
 <a name="installation"/>
 # Installation
@@ -133,11 +144,11 @@ server {
 	### LOGGING ###
 }
 ```
-Note the `ssl_client_certificate`. This is actually the server's public certificate, and the private key is installed in my desktop/browser. The first time, in a single run of my browser, the server request a certificate; the browser is aware of my private key and offers to send one of my keys, which I do; then I gain access to my VpsInfo page.
+Note the `ssl_client_certificate`. This is actually a public certificate, and the private key is installed in my desktop/browser. I use one self-signed certificate for access, and another one for https protocol.
 
-The `ssl_verify_client = on` prevents access without a verified certificate.
+The `ssl_verify_client = on` prevents access without a verified key.
 
-Using a certificate for authentication (vs password) avoids the possibility of password brute force.
+Using a key/certificate verification (vs password) blocs attempts of brute-force password and filename/directory attack.
 
 <a name="require_bloc"/>
 # Requirements for Specific Blocs
@@ -210,12 +221,6 @@ This is a partial list of configuration entries. For the complete list and descr
 `2 = mysqlreport_a   (mysql/percona)`<br/>
 `3 = mysqlreport_b   (mysql/percona, MariaDB)`<br/>
 
-**$mysql_mon**<br/>
-`0 = none`<br/>
-`1 = mytop`<br/>
-`2 = mysqlreport_a   (mysql/percona)`<br/>
-`3 = mysqlreport_b   (mysql/percona, MariaDB)`<br/>
-
 **Database Access**<br/>
 Not needed if `$mysql_mon = 0`.<br/>
 
@@ -271,7 +276,7 @@ Popup:<br/>
 Popup:<br/>
 ![netstat_portlist_b.png](images/netstat_portlist_b.png)
 
-#### Whois
+### Whois
 In the netstat list:<br/>
 ![netstat_whois_a_foreign_a.png](images/netstat_whois_a_foreign_a.png)<br/>
 In the footer of the netstat bloc:<br/>
@@ -297,21 +302,21 @@ Popup:<br/>
 
 <a name="acknowledgement"/>
 # Acknowledgement
-Original vpsinfo was developped by Douglas T. Robbins at labradordata.ca
+Original VPSinfo was developped by Douglas T. Robbins at [labradordata.ca](http://www.labradordata.ca)
 
 This script may utilize third party software:
 
-* MyTop by Jeremy D. Zawodny,
-    http://jeremy.zawodny.com/mysql/mytop/
+* MyTop by Jeremy D. Zawodny,<br/>
+    [http://jeremy.zawodny.com/mysql/mytop/]()
 
-* mysqlreport (a) by Daniel Nichter,
-    http://hackmysql.com/mysqlreport
+* mysqlreport (a) by Daniel Nichter,<br/>
+    [http://hackmysql.com/mysqlreport]()
 
-* mysqlreport (b) by Jean Weisbuch,
-    https://github.com/jb-boin/mariadb/blob/5.5.30/debian/additions/mysqlreport
+* mysqlreport (b) by Jean Weisbuch,<br/>
+    [https://github.com/jb-boin/mariadb/blob/5.5.30/debian/additions/mysqlreport]()
 
-* vnstat by Teemu Toivola,
-    http://humdi.net/vnstat/
+* vnstat by Teemu Toivola,<br/>
+    [http://humdi.net/vnstat/]()
 
 <a name="license"/>
 # License
@@ -326,6 +331,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 The GNU General Public License is available at:
-http://www.gnu.org/copyleft/gpl.html
+[http://www.gnu.org/copyleft/gpl.html]()
 
 
