@@ -1,4 +1,4 @@
-![vpsinfo_logo.png](wiki/images/vpsinfo_logo.png)
+![vpsinfo_logo.png](doc/images/vpsinfo_logo.png)
 # Introduction
 
 vpsinfo is a Linux server monitoring script, written in PHP, that provides web access to system status information. It gathers the output from several common Linux commands into one web page, providing a quick overview of the system's current state.
