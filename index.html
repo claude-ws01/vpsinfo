@@ -19,7 +19,7 @@
     </section>
 
     <section class="main-content">
-      <p><img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/vpsinfo_logo.png" alt="vpsinfo_logo.png"></p>
+      <p><img src="images/vpsinfo_logo.png" alt="vpsinfo_logo.png"></p>
 
 <h5>
 <a id="table-of-contents" class="anchor" href="#table-of-contents" aria-hidden="true"><span class="octicon octicon-link"></span></a>Table of Contents</h5>
@@ -271,38 +271,38 @@ $ sh install.sh</pre></div>
 
 <p>This is a partial list of configuration entries. For the complete list and description, please refer to <code>config.php</code>.</p>
 
-<p><strong>$vnstat</strong>
-<code>0 = disabled</code>
+<p><strong>$vnstat</strong><br/>
+<code>0 = disabled</code><br/>
 <code>1 = enabled</code></p>
 
-<p><strong>$mysql_mon</strong>
-<code>0 = none</code>
-<code>1 = mytop</code>
-<code>2 = mysqlreport_a   (mysql/percona)</code>
+<p><strong>$mysql_mon</strong><br/>
+<code>0 = none</code><br/>
+<code>1 = mytop</code><br/>
+<code>2 = mysqlreport_a   (mysql/percona)</code><br/>
 <code>3 = mysqlreport_b   (mysql/percona, MariaDB)</code></p>
 
-<p><strong>$mysql_mon</strong>
-<code>0 = none</code>
-<code>1 = mytop</code>
-<code>2 = mysqlreport_a   (mysql/percona)</code>
+<p><strong>$mysql_mon</strong><br/>
+<code>0 = none</code><br/>
+<code>1 = mytop</code><br/>
+<code>2 = mysqlreport_a   (mysql/percona)</code><br/>
 <code>3 = mysqlreport_b   (mysql/percona, MariaDB)</code></p>
 
-<p><strong>Database Access</strong>
+<p><strong>Database Access</strong><br/>
 Not needed if <code>$mysql_mon = 0</code>.</p>
 
 <p>Socket has priority if defined.
 <code>$my_socket = '/var/lib/mysql/mysql.sock';</code></p>
 
-<p>Then host IP if no socket. Avoid 'localhost', save a dns lookup.
+<p>Then host IP if no socket. Avoid 'localhost', save a dns lookup.<br/>
 <code>$my_host   = '127.0.0.1';</code>
 <code>$my_port   = '3306';</code></p>
 
-<p>Only required by mytop
+<p>Only required by mytop<br/>
 <code>$my_db     = 'mysql';</code></p>
 
-<p>And authentication.
-<code>$my_user   = 'USERNAME';</code>
-<code>$my_pass   = 'PASSWORD';</code>
+<p>And authentication.<br/>
+<code>$my_user   = 'USERNAME';</code><br/>
+<code>$my_pass   = 'PASSWORD';</code><br/>
 <code>$userhome = '/USERNAME';</code></p>
 
 <p><strong>$processes</strong>
@@ -317,7 +317,7 @@ Process names that appear in a <code>ps -e</code> command output are shown as 'u
 <h2>
 <a id="main-page" class="anchor" href="#main-page" aria-hidden="true"><span class="octicon octicon-link"></span></a>Main page</h2>
 
-<p><img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/main.png" alt="main.png"></p>
+<p><img src="images/main.png" alt="main.png"></p>
 
 <h2>
 <a id="pop-ups" class="anchor" href="#pop-ups" aria-hidden="true"><span class="octicon octicon-link"></span></a>Pop-ups</h2>
@@ -325,60 +325,60 @@ Process names that appear in a <code>ps -e</code> command output are shown as 'u
 <h3>
 <a id="top" class="anchor" href="#top" aria-hidden="true"><span class="octicon octicon-link"></span></a>Top</h3>
 
-<p><img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/top_ps-aux_a.png" alt="top_ps-aux_a.png">
-Popup:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/top_ps-aux_b.png" alt="top_ps-aux_b.png"></p>
+<p><img src="images/top_ps-aux_a.png" alt="top_ps-aux_a.png">
+Popup:<br/>
+<img src="images/top_ps-aux_b.png" alt="top_ps-aux_b.png"></p>
 
-<p><img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/top_ps-aux_mem_a.png" alt="top_ps-aux_mem_a.png">
-Popup:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/top_ps-aux_mem_b.png" alt="top_ps-aux_mem_b.png"></p>
+<p><img src="images/top_ps-aux_mem_a.png" alt="top_ps-aux_mem_a.png">
+Popup:<br/>
+<img src="images/top_ps-aux_mem_b.png" alt="top_ps-aux_mem_b.png"></p>
 
-<p><img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/top_logged_in_user_a.png" alt="top_logged_in_user_a.png">
-Popup:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/top_logged_in_user_b.png" alt="top_logged_in_user_b.png"></p>
+<p><img src="images/top_logged_in_user_a.png" alt="top_logged_in_user_a.png">
+Popup:<br/>
+<img src="images/top_logged_in_user_b.png" alt="top_logged_in_user_b.png"></p>
 
 <h3>
 <a id="netstat" class="anchor" href="#netstat" aria-hidden="true"><span class="octicon octicon-link"></span></a>Netstat</h3>
 
-<p><img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/netstat_listening_a.png" alt="netstat_listening_a.png">
-Popup:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/netstat_listening_b.png" alt="netstat_listening_b.png"></p>
+<p><img src="images/netstat_listening_a.png" alt="netstat_listening_a.png">
+Popup:<br/>
+<img src="images/netstat_listening_b.png" alt="netstat_listening_b.png"></p>
 
-<p><img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/netstat_portlist_a.png" alt="netstat_portlist_a.png">
-Popup:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/netstat_portlist_b.png" alt="netstat_portlist_b.png"></p>
+<p><img src="images/netstat_portlist_a.png" alt="netstat_portlist_a.png">
+Popup:<br/>
+<img src="images/netstat_portlist_b.png" alt="netstat_portlist_b.png"></p>
 
 <h4>
 <a id="whois" class="anchor" href="#whois" aria-hidden="true"><span class="octicon octicon-link"></span></a>Whois</h4>
 
-<p>In the netstat list:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/netstat_whois_a_foreign_a.png" alt="netstat_whois_a_foreign_a.png">
-In the footer of the netstat bloc:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/netstat_whois_a_lookup_a.png" alt="netstat_whois_a_lookup_a.png">
-Popup:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/netstat_whois_b.png" alt="netstat_whois_b.png"></p>
+<p>In the netstat list:<br/>
+<img src="images/netstat_whois_a_foreign_a.png" alt="netstat_whois_a_foreign_a.png">
+In the footer of the netstat bloc:<br/>
+<img src="images/netstat_whois_a_lookup_a.png" alt="netstat_whois_a_lookup_a.png">
+Popup:<br/>
+<img src="images/netstat_whois_b.png" alt="netstat_whois_b.png"></p>
 
 <h3>
 <a id="vnstat-1" class="anchor" href="#vnstat-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Vnstat</h3>
 
-<p>Clic any one:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/vnstat_a_days.png" alt="vnstat_a_days.png"> <img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/vnstat_a_month.png" alt="vnstat_a_month.png"> <img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/vnstat_a_sample.png" alt="vnstat_a_sample.png">
-Popup:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/vnstat_b_month.png" alt="vnstat_b_month.png"></p>
+<p>Clic any one:<br/>
+<img src="images/vnstat_a_days.png" alt="vnstat_a_days.png"> <img src="images/vnstat_a_month.png" alt="vnstat_a_month.png"> <img src="images/vnstat_a_sample.png" alt="vnstat_a_sample.png">
+Popup:<br/>
+<img src="images/vnstat_b_month.png" alt="vnstat_b_month.png"></p>
 
 <h3>
 <a id="mysql-report-1" class="anchor" href="#mysql-report-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>MySQL Report</h3>
 
-<p><img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/mysql_full_report_a.png" alt="mysql_full_report_a.png">
-Popup:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/mysql_full_report_b.png" alt="mysql_full_report_b.png"></p>
+<p><img src="images/mysql_full_report_a.png" alt="mysql_full_report_a.png">
+Popup:<br/>
+<img src="images/mysql_full_report_b.png" alt="mysql_full_report_b.png"></p>
 
 <h3>
 <a id="temp-files" class="anchor" href="#temp-files" aria-hidden="true"><span class="octicon octicon-link"></span></a>Temp files</h3>
 
-<p><img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/ls-al%7Etmp_a.png" alt="ls-al~tmp_a.png">
-Popup:
-<img src="https://github.com/claude-ws01/vpsinfo/blob/master/doc/images/ls-al%7Etmp_b.png" alt="ls-al~tmp_b.png"></p>
+<p><img src="images/ls-al%7Etmp_a.png" alt="ls-al~tmp_a.png">
+Popup:<br/>
+<img src="images/ls-al%7Etmp_b.png" alt="ls-al~tmp_b.png"></p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/claude-ws01/vpsinfo">Vpsinfo</a> is maintained by <a href="https://github.com/claude-ws01">claude-ws01</a>.</span>
