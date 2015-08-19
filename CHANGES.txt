@@ -1,3 +1,16 @@
+v2.3.9 (2015 August 18)
+    - bugfix: displaying vzopen LONG_MAX values in user_beancounters. Changed to 'Max'.
+    - revision: now fetch system page size to accuratly calculate beanscounter's size in MB.
+    - bugfix: netstat 'lookup' button opening in same window. Now new window.
+    - some aesthetics
+    - documentation
+    - mysqlreport:
+        - now 2 versions (mysql v2008 & mysql/mariadb v2015)
+        - some adjustments in both
+        - making both available as a precaution (if one does not work well, time will tell)
+    - netstat: prevent making links with local ip's (127.0.0.1, 0.0.0.0)
+    - apache threads (head of main page): not always apache, included check for nginx.
+
 v2.3.8 (09 August 2015)
     - vnstat: no 'today' validation. vnstat is there but has no data for today. Avoid php errors.
     - whois: vulnerability fix, and now only looks at $_REQUEST (no get/post)

@@ -1,10 +1,12 @@
 #!/usr/bin/perl -w
 
-# mysqlreport v3.5 Apr 16 2008
+# mysqlreport v3.5-maria16-b August 19 2015
 # http://hackmysql.com/mysqlreport
 
-# mysqlreport makes an easy-to-read report of important MySQL status values.
-# Copyright 2006-2008 Daniel Nichter
+# mysqlreport makes an easy-to-read report of important MySQL/MariaDB status values.
+# Copyright 2006-2008 Daniel Nichter - http://hackmysql.com/mysqlreport
+# Copyright 2012-2014 Jean Weisbuch - https://github.com/jb-boin/mariadb/blob/5.5.30/debian/additions/mysqlreport
+# adapted 2015 Claude Nadon - https://github.com/cloudeasy/vpsinfo
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -36,16 +38,19 @@ my ($stat_name, $stat_val, $stat_label);
 my $MySQL_version;
 my (%stats, %vars); # SHOW STATUS, SHOW VARIABLES
 my (%DMS_vals, %Com_vals, %ib_vals);
-my ($dbh, $query);
+my $dbh;
 my ($questions, $key_read_ratio, $key_write_ratio, $dms, $slow_query_t);
 my ($key_cache_block_size, $key_buffer_used, $key_buffer_usage);
 my ($qc_mem_used, $qc_hi_r, $qc_ip_r); # Query Cache
-my $have_innodb_vals;
 my ($ib_bp_used, $ib_bp_total, $ib_bp_read_ratio);
 my ($relative_live, $relative_infiles);
 my $real_uptime;
 my (%stats_present, %stats_past); # For relative reports
-      
+my ($pagecache_read_ratio, $pagecache_write_ratio, $pagecache_block_size, $pagecache_buffer_used, $pagecache_buffer_usage); # AriaDB pagecache stats
+my ($binlog_cache_ratio, $binlog_stmt_cache_ratio); # binary log cache
+my $dbms;
+my ($rows, $rows_using_indexes);
+
 GetOptions (
    \%op,
    "user=s",
@@ -72,7 +77,7 @@ get_user_mycnf() unless $op{'no-mycnf'};
 # Command line options override ~/.my.cnf
 $mycnf{'host'}   = $op{'host'}   if have_op 'host';
 $mycnf{'port'}   = $op{'port'}   if have_op 'port';
-$mycnf{'socket'} = $op{'socket'} if have_op 'socket'; 
+$mycnf{'socket'} = $op{'socket'} if have_op 'socket';
 $mycnf{'user'}   = $op{'user'}   if have_op 'user';
 
 $mycnf{'user'} ||= $ENV{'USER'};
@@ -127,19 +132,25 @@ $| = 1 if ($op{'detach'} || $relative_live);
 
 print "tmp file: $tmpfile\n" if $op{debug};
 
-# Connect to MySQL
+# Connect to MySQL/MariaDB
 if(!$op{'infile'} && !$relative_infiles)
 {
    connect_to_MySQL();
 }
 
-$have_innodb_vals = 1; # This might be set to 0 later in get_MySQL_version()
+my $have_innodb_vals = 1; # This might be set to 0 later in get_MySQL_version()
+my $have_aria_vals = 0;
+my $have_subquerycache_vals = 0;
+my $have_binlog_vals = 0;
+my $have_tokudb_engine = 0;
+my $use_thread_pool = 0;
+my $use_xtradb = 0;
 
 if(defined $op{'r'})
 {
    if($relative_live)
-   { 
-      print STDERR "mysqlreport is writing relative reports to '$tmpfile'.\n" unless $op{'detach'}; 
+   {
+      print STDERR "mysqlreport is writing relative reports to '$tmpfile'.\n" unless $op{'detach'};
       get_MySQL_version();
       collect_reports();
    }
@@ -163,6 +174,9 @@ else
 
    set_myisam_vals();
    set_ib_vals() if $have_innodb_vals;
+   set_aria_vals() if $have_aria_vals;
+   set_subquerycache_vals() if $have_subquerycache_vals;
+   set_binlog_vals() if $have_binlog_vals;
 
    write_report();
 }
@@ -177,8 +191,8 @@ exit;
 sub show_help_and_exit
 {
    print <<"HELP";
-mysqlreport v3.5 Apr 16 2008
-mysqlreport makes an easy-to-read report of important MySQL status values.
+mysqlreport v3.5-maria16 Jan 05 2015
+mysqlreport makes an easy-to-read report of important MySQL/MariaDB status values.
 
 Command line options (abbreviations work):
    --user USER       Connect to MySQL as USER
@@ -264,6 +278,9 @@ sub collect_reports
 
    set_myisam_vals();
    set_ib_vals() if $have_innodb_vals;
+   set_aria_vals() if $have_aria_vals;
+   set_subquerycache_vals() if $have_subquerycache_vals;
+   set_binlog_vals() if $have_binlog_vals;
 
    print "#\n# Beginning report, 0 0:0:0\n#\n";
 
@@ -403,6 +420,9 @@ sub relative_infile_report
 
       set_myisam_vals();
       set_ib_vals() if $have_innodb_vals;
+      set_aria_vals() if $have_aria_vals;
+      set_subquerycache_vals() if $have_subquerycache_vals;
+      set_binlog_vals() if $have_binlog_vals;
 
       print "#\n# Beginning report, 0 0:0:0\n#\n";
 
@@ -422,7 +442,7 @@ sub get_vals
 {
    print "get_vals\n" if $op{debug};
 
-   my @row;
+   my (@row, $query);
 
    # Get status values
    if($MySQL_version >= 50002)
@@ -434,7 +454,9 @@ sub get_vals
       $query = $dbh->prepare("SHOW STATUS;");
    }
    $query->execute();
-   while(@row = $query->fetchrow_array()) { $stats{$row[0]} = $row[1]; }
+   # To avoid problems if the variable capitalization would change (eg. TokuDB on MariaDB 5.5 => 10.0), the $stats index is forced to have its first char uppercase and the rest lowercase
+   while(@row = $query->fetchrow_array()) { $stats{ucfirst(lc($row[0]))} = $row[1]; }
+   $query->finish();
 
    $real_uptime = $stats{'Uptime'};
 }
@@ -443,17 +465,22 @@ sub get_vars
 {
    print "get_vars\n" if $op{debug};
 
-   my @row;
+   my (@row, $query);
 
    # Get server system variables
    $query = $dbh->prepare("SHOW VARIABLES;");
    $query->execute();
    while(@row = $query->fetchrow_array()) { $vars{$row[0]} = $row[1]; }
-
+   $query->finish();
    # table_cache was renamed to table_open_cache in MySQL 5.1.3
    if($MySQL_version >= 50103)
    {
       $vars{'table_cache'} = $vars{'table_open_cache'};
+   }
+   # log_slow_queries was renamed to slow_query_log in MySQL 5.1.29
+   if($MySQL_version >= 50129)
+   {
+      $vars{'log_slow_queries'} = $vars{'slow_query_log'};
    }
 }
 
@@ -471,7 +498,7 @@ sub read_infile
    $vars{'table_cache'} = 64          if !exists $vars{'table_cache'};
    $vars{'max_connections'} = 100     if !exists $vars{'max_connections'};
    $vars{'key_buffer_size'} = 8388600 if !exists $vars{'key_buffer_size'}; # 8M
-   $vars{'thread_cache_size'} = 0     if !exists $vars{'thread_cache_size'}; 
+   $vars{'thread_cache_size'} = 0     if !exists $vars{'thread_cache_size'};
    $vars{'tmp_table_size'} = 0        if !exists $vars{'tmp_table_size'};
    $vars{'long_query_time'} = '?'     if !exists $vars{'long_query_time'};
    $vars{'log_slow_queries'} = '?'    if !exists $vars{'log_slow_queries'};
@@ -487,7 +514,7 @@ sub read_infile
    {
       last if !defined $_;
 
-      next if /^\+/;  # skip divider lines 
+      next if /^\+/;  # skip divider lines
       next if /^$/;   # skip blank lines
 
       next until /(Aborted_clients|back_log|=)/;
@@ -507,10 +534,10 @@ sub read_infile
             else { print "read_infile: ignore '$_'\n" if $op{debug}; }
 
             last if $1 eq 'Uptime';  # exit while() if end of status values
-            $_ = <INFILE>; # otherwise, read next line of status values
+            $_ = <INFILE>;  # otherwise, read next line of status values
          }
       }
-      elsif($1 eq  'back_log')  # system variable values
+      elsif($1 eq 'back_log')  # system variable values
       {
          print "read_infile: start vars\n" if $op{debug};
 
@@ -525,7 +552,7 @@ sub read_infile
             else { print "read_infile: ignore '$_'\n" if $op{debug}; }
 
             last if $1 eq 'wait_timeout';  # exit while() if end of vars
-            $_ = <INFILE>; # otherwise, read next line of vars
+            $_ = <INFILE>;  # otherwise, read next line of vars
          }
       }
       elsif($1 eq '=')  # old style, manually added system variable values
@@ -542,7 +569,7 @@ sub read_infile
             }
             else { print "read_infile: ignore '$_'\n" if $op{debug}; }
 
-            $_ = <INFILE>; # otherwise, read next line of old vars
+            $_ = <INFILE>;  # otherwise, read next line of old vars
          }
 
          redo;
@@ -572,18 +599,35 @@ sub get_MySQL_version
 
    if($op{'infile'} || $relative_infiles)
    {
-      ($major, $minor, $patch) = ($vars{'version'} =~ /(\d{1,2})\.(\d{1,2})\.(\d{1,2})/);
+      ($major, $minor, $patch) = ($vars{'version'} =~ /^(\d{1,2})\.(\d{1,2})\.(\d{1,2})/);
+      if($vars{'version'} =~ /^\d{1,2}\.\d{1,2}\.\d{1,2}-MariaDB/) {
+        print "MariaDB detected\n" if $op{debug};
+        $dbms = "MariaDB";
+      } else {
+        $dbms = "MySQL";
+      }
    }
    else
    {
-      my @row;
+      my (@row, $query);
 
       $query = $dbh->prepare("SHOW VARIABLES LIKE 'version';");
       $query->execute();
       @row = $query->fetchrow_array();
-      ($major, $minor, $patch) = ($row[1] =~ /(\d{1,2})\.(\d{1,2})\.(\d{1,2})/);
+      $query->finish();
+      ($major, $minor, $patch) = ($row[1] =~ /^(\d{1,2})\.(\d{1,2})\.(\d{1,2})/);
+      if($row[1] =~ /^\d{1,2}\.\d{1,2}\.\d{1,2}-MariaDB/)
+      {
+         print "MariaDB detected\n" if $op{debug};
+         $dbms = "MariaDB";
+      }
+      else
+      {
+         $dbms = "MySQL";
+      }
    }
 
+   # e.g.: 5.5.9 will be 50509 and 10.0.5 will be 100005
    $MySQL_version = sprintf("%d%02d%02d", $major, $minor, $patch);
 
    # Innodb_ status values were added in 5.0.2
@@ -591,6 +635,73 @@ sub get_MySQL_version
    {
       $have_innodb_vals = 0;
       print "get_MySQL_version: no InnoDB reports because MySQL version is older than 5.0.2\n" if $op{debug};
+   } else {
+      $have_innodb_vals = $dbh->selectall_arrayref("SELECT SUPPORT FROM information_schema.engines WHERE ENGINE = 'InnoDB';", undef)->[0][0];
+      if(defined($have_innodb_vals) && ($have_innodb_vals eq "YES" || $have_innodb_vals eq "DEFAULT"))
+      {
+         print "InnoDB detected\n" if $op{debug};
+         $have_innodb_vals = 1;
+      } else {
+         print "InnoDB is not activated\n" if $op{debug};
+         $have_innodb_vals = 0;
+      }
+   }
+
+   if($dbms eq "MariaDB") {
+      $have_aria_vals = $dbh->selectall_arrayref("SELECT SUPPORT FROM information_schema.engines WHERE ENGINE = 'Aria';", undef)->[0][0];
+      if(defined($have_aria_vals) && $have_aria_vals eq "YES")
+      {
+         print "Aria engine detected\n" if $op{debug};
+         $have_aria_vals = 1;
+      } else {
+         $have_aria_vals = 0;
+      }
+
+      # MariaDB 5.3+, activated by default since 5.3.2
+      $have_subquerycache_vals = $dbh->selectall_arrayref("SELECT VARIABLE_VALUE REGEXP ',subquery_cache=on,|^subquery_cache=on,|,subquery_cache=on\$' AS SUBQUERY_CACHE FROM information_schema.global_variables WHERE VARIABLE_NAME = 'optimizer_switch';", undef)->[0][0];
+      if(defined($have_subquerycache_vals) && $have_subquerycache_vals eq "1")
+      {
+         print "Subquery cache is activated\n" if $op{debug};
+         $have_subquerycache_vals = 1;
+      } else {
+         $have_subquerycache_vals = 0;
+      }
+   }
+
+   # MariaDB 5.5.21+ and Percona Server 5.5.30+ use the same thread pool implementation
+   $use_thread_pool = $dbh->selectall_arrayref("SELECT VARIABLE_VALUE FROM information_schema.global_variables WHERE VARIABLE_NAME = 'thread_handling';", undef)->[0][0];
+   if(defined($use_thread_pool) && $use_thread_pool eq "pool-of-threads") {
+      print "Thread pool is used\n" if $op{debug};
+      $use_thread_pool = 1;
+   } else {
+      $use_thread_pool = 0;
+   }
+
+   $have_binlog_vals = $dbh->selectall_arrayref("SELECT VARIABLE_VALUE FROM information_schema.global_variables WHERE VARIABLE_NAME = 'log_bin';", undef)->[0][0];
+   if(defined($have_binlog_vals) && $have_binlog_vals eq "ON")
+   {
+      print "Binary log is activated\n" if $op{debug};
+      $have_binlog_vals = 1;
+   } else {
+      $have_binlog_vals = 0;
+   }
+
+   $have_tokudb_engine = $dbh->selectall_arrayref("SELECT SUPPORT FROM information_schema.engines WHERE ENGINE = 'TokuDB';", undef)->[0][0];
+   if(defined($have_tokudb_engine) && ($have_tokudb_engine eq "YES" || $have_tokudb_engine eq "DEFAULT"))
+   {
+      print "TokuDB detected\n" if $op{debug};
+      $have_tokudb_engine = 1;
+   } else {
+      $have_tokudb_engine = 0;
+   }
+
+   $use_xtradb = $dbh->selectall_arrayref("SELECT 1 FROM INFORMATION_SCHEMA.ENGINES WHERE ENGINE = 'InnoDB' AND COMMENT LIKE 'Percona-XtraDB%';", undef)->[0][0];
+   if(defined($use_xtradb) && $use_xtradb eq "1")
+   {
+      print "XtraDB detected\n" if $op{debug};
+      $use_xtradb = 1;
+   } else {
+      $use_xtradb = 0;
    }
 }
 
@@ -598,6 +709,7 @@ sub set_myisam_vals
 {
    print "set_myisam_vals\n" if $op{debug};
 
+# should be moved elsewere
    $questions = $stats{'Questions'};
 
    $key_read_ratio = sprintf "%.2f",
@@ -638,7 +750,6 @@ sub set_myisam_vals
    $dms = $DMS_vals{SELECT} + $DMS_vals{INSERT} + $DMS_vals{REPLACE} + $DMS_vals{UPDATE} + $DMS_vals{DELETE};
 
    $slow_query_t = format_u_time($vars{long_query_time});
-
 }
 
 sub set_ib_vals
@@ -656,6 +767,46 @@ sub set_ib_vals
                         100 - ($stats{'Innodb_buffer_pool_reads'} /
                            $stats{'Innodb_buffer_pool_read_requests'}) * 100 :
                         0);
+}
+
+sub set_aria_vals
+{
+   print "set_aria_vals\n" if $op{debug};
+
+   $pagecache_read_ratio = sprintf "%.2f",
+                     ($stats{'Aria_pagecache_read_requests'} ?
+                      100 - ($stats{'Aria_pagecache_reads'} / $stats{'Aria_pagecache_read_requests'}) * 100 :
+                      0);
+
+   $pagecache_write_ratio = sprintf "%.2f",
+                      ($stats{'Aria_pagecache_write_requests'} ?
+                       100 - ($stats{'Aria_pagecache_writes'} / $stats{'Aria_pagecache_write_requests'}) * 100 :
+                       0);
+
+   $pagecache_block_size = (defined $vars{'aria_block_size'} ?
+                            $vars{'aria_block_size'} :
+                            1024);
+
+   $pagecache_buffer_used = $stats{'Aria_pagecache_blocks_used'} * $pagecache_block_size;
+
+   $pagecache_buffer_usage =  $vars{'aria_pagecache_buffer_size'} -
+                      ($stats{'Aria_pagecache_blocks_unused'} * $pagecache_block_size);
+}
+
+sub set_subquerycache_vals
+{
+   print "set_subquerycache_vals\n" if $op{debug};
+}
+
+sub set_binlog_vals
+{
+   print "set_binlog_vals\n" if $op{debug};
+
+   if($stats{'Binlog_cache_use'} gt 0) { $binlog_cache_ratio = $stats{'Binlog_cache_disk_use'} / $stats{'Binlog_cache_use'}; }
+   else { $binlog_cache_ratio = 0; }
+
+   if(defined($stats{'Binlog_stmt_cache_use'}) && $stats{'Binlog_stmt_cache_use'} gt 0) { $binlog_stmt_cache_ratio = $stats{'Binlog_stmt_cache_disk_use'} / $stats{'Binlog_stmt_cache_use'}; }
+   else { $binlog_stmt_cache_ratio = 0; }
 }
 
 sub write_relative_report
@@ -708,6 +859,10 @@ sub write_relative_report
          $stats{'Innodb_row_lock_time_max'}      = $stats_present{'Innodb_row_lock_time_max'};
       }
    }
+  if($have_aria_vals)
+  {
+     $stats{'Aria_pagecache_blocks_used'} = $stats_present{'Aria_pagecache_blocks_used'};
+  }
 
    get_Com_values();
 
@@ -715,6 +870,9 @@ sub write_relative_report
 
    set_myisam_vals();
    set_ib_vals() if $have_innodb_vals;
+   set_aria_vals() if $have_aria_vals;
+   set_subquerycache_vals() if $have_subquerycache_vals;
+   set_binlog_vals() if $have_binlog_vals;
 
    write_report();
 }
@@ -731,15 +889,27 @@ sub write_report
    $~ = 'SLOW_DMS', write;
    write_DMS();
    write_Com();
-   $~ = 'SAS', write; 
-   write_qcache(); 
+   write_Rows();
+   $~ = 'SAS', write;
+   write_qcache();
    $~ = 'REPORT_END', write;
+   $~ = 'THREADS', write;
+   if($use_thread_pool)
+   {
+      $~ = 'THREADPOOL', write;
+   } else {
+      $~ = 'THREADPERCONNECTION', write;
+   }
    $~ = 'TAB', write;
 
    write_InnoDB() if $have_innodb_vals;
+   write_Aria() if $have_aria_vals;
+   write_Subquerycache() if $have_subquerycache_vals;
+   write_Binlog() if $have_binlog_vals;
+   write_TokuDB() if $have_tokudb_engine;
 }
 
-sub sec_to_dhms # Seconds to days hours:minutes:seconds
+sub sec_to_dhms # Seconds to days+hours:minutes:seconds
 {
    my $s = shift;
    my ($d, $h, $m) = (0, 0, 0);
@@ -757,11 +927,11 @@ sub sec_to_dhms # Seconds to days hours:minutes:seconds
      $h = int $s / 3600;
      $s -= $h * 3600;
    }
-   
+
    $m = int $s / 60;
    $s -= $m * 60;
-   
-   return "$d $h:$m:$s";
+
+   return "$d+$h:$m:$s";
 }
 
 sub make_short
@@ -771,6 +941,8 @@ sub make_short
    my $short;
 
    $d ||= 2;
+
+   $number = 0 if (not defined $number);
 
    if($kb) { while ($number > 1023) { $number /= 1024; $n++; }; }
    else { while ($number > 999) { $number /= 1000; $n++; }; }
@@ -782,12 +954,11 @@ sub make_short
 }
 
 # What began as a simple but great idea has become the new standard:
-# long_query_time in microseconds. For MySQL 5.1.21+ and 6.0.4+ this
-# is now standard. For 4.1 and 5.0 patches, the architects of this
-# idea provide: http://www.mysqlperformanceblog.com/mysql-patches/
+# long_query_time in microseconds. For MySQL 5.1.21+ this is now
+# standard. For 4.1 and 5.0 patches, the architects of this idea
+# provide: http://www.mysqlperformanceblog.com/mysql-patches/
 # Relevant notes in MySQL manual:
 # http://dev.mysql.com/doc/refman/5.1/en/slow-query-log.html
-# http://dev.mysql.com/doc/refman/6.0/en/slow-query-log.html
 #
 # The format_u_time sub simply beautifies long_query_time.
 
@@ -826,10 +997,7 @@ sub format_u_time  # format microsecond (µ) time value
 sub perc # Percentage
 {
    my($is, $of) = @_;
-   if(!$is)
-   {
-		$is = 0;
-	}
+   $is = 0 if (not defined $is);
    return sprintf "%.2f", ($is * 100) / ($of ||= 1);
 }
 
@@ -851,7 +1019,7 @@ sub email_report # Email given report to $op{'email'}
    open SENDMAIL, "|/usr/sbin/sendmail -t";
    print SENDMAIL "From: mysqlreport\n";
    print SENDMAIL "To: $op{email}\n";
-   print SENDMAIL "Subject: MySQL status report on " . ($mycnf{'host'} || 'localhost') . "\n\n";
+   print SENDMAIL "Subject: $dbms status report on " . ($mycnf{'host'} || 'localhost') . "\n\n";
    print SENDMAIL `cat $report`;
    close SENDMAIL;
 }
@@ -982,6 +1150,7 @@ sub write_qcache
    # ergo this method is slightly more reliable
    return if not exists $vars{'query_cache_size'};
    return if $vars{'query_cache_size'} == 0;
+   return if defined($vars{'query_cache_type'}) and $vars{'query_cache_type'} eq 'OFF';
 
    $qc_mem_used = $vars{'query_cache_size'} - $stats{'Qcache_free_memory'};
    $qc_hi_r = sprintf "%.2f", $stats{'Qcache_hits'} / ($stats{'Qcache_inserts'} ||= 1);
@@ -991,14 +1160,51 @@ sub write_qcache
    write;
 }
 
+sub write_Subquerycache
+{
+   print "write_Subquerycache\n" if $op{debug};
+
+   return if not defined $stats{'Subquery_cache_hit'};
+   return if $stats{'Subquery_cache_hit'} == 0 && $stats{'Subquery_cache_miss'} == 0;
+
+   $~ = 'SUBQUERYCACHE';
+   write;
+}
+
+sub write_Binlog
+{
+   print "write_Binlog\n" if $op{debug};
+
+   return if $binlog_cache_ratio == 0 && $binlog_stmt_cache_ratio == 0;
+   $~ = 'BINLOG';
+   write;
+}
+
+sub write_TokuDB
+{
+   print "write_TokuDB\n" if $op{debug};
+
+   return if $stats{'Tokudb_cachetable_size_current'} == 0;
+
+   $~ = 'TOKUDB';
+   write;
+}
+
 sub write_InnoDB
 {
    print "write_InnoDB\n" if $op{debug};
 
    return if not defined $stats{'Innodb_page_size'};
 
+   $stats{'Innodb_buffer_pool_pages_latched'} = 0 if not defined $stats{'Innodb_buffer_pool_pages_latched'};
+
    $~ = 'IB';
    write;
+   if($use_xtradb)
+   {
+      $~ = 'IB_XTRADB';
+      write;
+   }
 
    # Innodb_row_lock_ values were added in MySQL 5.0.3
    if($MySQL_version >= 50003)
@@ -1006,9 +1212,41 @@ sub write_InnoDB
       $~ = 'IB_LOCK';
       write;
    }
+   if($use_xtradb)
+   {
+      $~ = 'IB_LOCK_XTRADB';
+      write;
+   }
 
    # Data, Pages, Rows
    $~ = 'IB_DPR';
+   write;
+}
+
+
+sub write_Aria
+{
+   print "write_Aria\n" if $op{debug};
+
+   return if not defined $stats{'Aria_pagecache_blocks_used'};
+
+   $~ = 'PAGECACHE_BUFF_MAX';
+   write;
+
+   if($pagecache_buffer_usage != -1) { $~ = 'PAGECACHE_BUFF_USAGE', write }
+
+   $~ = 'PAGECACHE_RATIOS';
+   write;
+}
+
+sub write_Rows
+{
+   print "write_Rows\n" if $op{debug};
+
+   $rows_using_indexes = $stats{'Handler_read_first'} + $stats{'Handler_read_key'} + $stats{'Handler_read_next'} + $stats{'Handler_read_prev'};
+   $rows = $rows_using_indexes + $stats{'Handler_read_rnd'} + $stats{'Handler_read_rnd_next'} + $stats{'Sort_rows'};
+
+   $~ = 'ROWS';
    write;
 }
 
@@ -1044,19 +1282,17 @@ sub exit_tasks_and_cleanup
    }
    else
    {
-      if($WIN) { `del $tmpfile`;   }
-      else     { `rm -f $tmpfile`; }
+      unlink $tmpfile;
    }
 
    if(!$op{'infile'} && !$relative_infiles)
    {
       if($op{'flush-status'})
       {
-         $query = $dbh->prepare("FLUSH STATUS;");
+         my $query = $dbh->prepare("FLUSH STATUS;");
          $query->execute();
+         $query->finish();
       }
-
-      $query->finish();
       $dbh->disconnect();
    }
 }
@@ -1066,19 +1302,19 @@ sub exit_tasks_and_cleanup
 #
 
 format MYSQL_TIME =
-MySQL @<<<<<<<<<<<<<<<<  uptime @<<<<<<<<<<<   @>>>>>>>>>>>>>>>>>>>>>>>>
-$vars{'version'}, sec_to_dhms($real_uptime), (($op{infile} || $relative_infiles) ? '' : scalar localtime)
+@<<<<<< @<<<<<<<<<<<<<<<<<< uptime @<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<
+$dbms, $vars{'version'}, sec_to_dhms($real_uptime), (($op{infile} || $relative_infiles) ? '' : scalar localtime)
 .
 
 format KEY_BUFF_MAX =
 
 __ Key _________________________________________________________________
-Buffer used   @>>>>>> of @>>>>>>  %Used: @>>>>>
+Buffer used   @>>>>>> of  @>>>>>>   %Used: @>>>>>
 make_short($key_buffer_used, 1), make_short($vars{'key_buffer_size'}, 1), perc($key_buffer_used, $vars{'key_buffer_size'})
 .
 
 format KEY_BUFF_USAGE =
-  Current     @>>>>>>            %Usage: @>>>>>
+  Current     @>>>>>>              %Usage: @>>>>>
 make_short($key_buffer_usage, 1), perc($key_buffer_usage, $vars{'key_buffer_size'})
 .
 
@@ -1089,166 +1325,203 @@ Read hit      @>>>>>%
 $key_read_ratio
 
 __ Questions ___________________________________________________________
-Total       @>>>>>>>>  @>>>>>/s
+Total       @>>>>>>>>    @>>>>>/s
 make_short($questions), t($questions)
 .
 
 format DTQ =
-  @<<<<<<<  @>>>>>>>>  @>>>>>/s  @>>>>>> @>>>>>
+  @<<<<<<<  @>>>>>>>>    @>>>>>/s  @>>>>>> @>>>>>
 $stat_name, make_short($stat_val), t($stat_val), $stat_label, perc($stat_val, $questions)
 .
 
 format SLOW_DMS =
-Slow @<<<<<<< @>>>>>>  @>>>>>/s          @>>>>>  %DMS: @>>>>>  Log: @>> 
+Slow @<<<<<<< @>>>>>>    @>>>>>/s          @>>>>>  %DMS: @>>>>> Log: @>>
 $slow_query_t, make_short($stats{'Slow_queries'}), t($stats{'Slow_queries'}), perc($stats{'Slow_queries'}, $questions), perc($stats{'Slow_queries'}, $dms), $vars{'log_slow_queries'}
-DMS         @>>>>>>>>  @>>>>>/s          @>>>>>
+DMS         @>>>>>>>>    @>>>>>/s          @>>>>>
 make_short($dms), t($dms), perc($dms, $questions)
 .
 
 format DMS =
-  @<<<<<<<  @>>>>>>>>  @>>>>>/s          @>>>>>        @>>>>>
+  @<<<<<<<  @>>>>>>>>    @>>>>>/s          @>>>>>        @>>>>>
 $stat_name, make_short($stat_val), t($stat_val), perc($stat_val, $questions), perc($stat_val, $dms)
 .
 
 format COM_1 =
-Com_        @>>>>>>>>  @>>>>>/s          @>>>>>
+Com_        @>>>>>>>>    @>>>>>/s          @>>>>>
 make_short($stat_val), t($stat_val), perc($stat_val, $questions)
 .
 
 format COM_2 =
-  @<<<<<<<<<< @>>>>>>  @>>>>>/s          @>>>>>
+  @<<<<<<<<<< @>>>>>>    @>>>>>/s          @>>>>>
 $stat_name, make_short($stat_val), t($stat_val), perc($stat_val, $questions)
 .
 
 format SAS =
 
 __ SELECT and Sort _____________________________________________________
-Scan          @>>>>>>   @>>>>/s %SELECT: @>>>>>
+Scan          @>>>>>>    @>>>>>/s %SELECT: @>>>>>
 make_short($stats{'Select_scan'}), t($stats{'Select_scan'}), perc($stats{'Select_scan'}, $stats{'Com_select'})
-Range         @>>>>>>   @>>>>/s          @>>>>>
+Range         @>>>>>>    @>>>>>/s          @>>>>>
 make_short($stats{'Select_range'}), t($stats{'Select_range'}), perc($stats{'Select_range'}, $stats{'Com_select'})
-Full join     @>>>>>>   @>>>>/s          @>>>>>
+Full join     @>>>>>>    @>>>>>/s          @>>>>>
 make_short($stats{'Select_full_join'}), t($stats{'Select_full_join'}), perc($stats{'Select_full_join'}, $stats{'Com_select'})
-Range check   @>>>>>>   @>>>>/s          @>>>>>
+Range check   @>>>>>>    @>>>>>/s          @>>>>>
 make_short($stats{'Select_range_check'}), t($stats{'Select_range_check'}), perc($stats{'Select_range_check'}, $stats{'Com_select'})
-Full rng join @>>>>>>   @>>>>/s          @>>>>>
+Full rng join @>>>>>>    @>>>>>/s          @>>>>>
 make_short($stats{'Select_full_range_join'}), t($stats{'Select_full_range_join'}), perc($stats{'Select_full_range_join'}, $stats{'Com_select'})
-Sort scan     @>>>>>>   @>>>>/s
+Sort scan     @>>>>>>    @>>>>>/s
 make_short($stats{'Sort_scan'}), t($stats{'Sort_scan'})
-Sort range    @>>>>>>   @>>>>/s
+Sort range    @>>>>>>    @>>>>>/s
 make_short($stats{'Sort_range'}), t($stats{'Sort_range'})
-Sort mrg pass @>>>>>>   @>>>>/s
+Sort mrg pass @>>>>>>    @>>>>>/s
 make_short($stats{'Sort_merge_passes'}), t($stats{'Sort_merge_passes'})
 .
 
 format QCACHE =
 
 __ Query Cache _________________________________________________________
-Memory usage  @>>>>>> of @>>>>>>  %Used: @>>>>>
+Memory usage  @>>>>>> of  @>>>>>>  %Usage: @>>>>>
 make_short($qc_mem_used, 1), make_short($vars{'query_cache_size'}, 1), perc($qc_mem_used, $vars{'query_cache_size'})
 Block Fragmnt @>>>>>%
 perc($stats{'Qcache_free_blocks'}, $stats{'Qcache_total_blocks'})
-Hits          @>>>>>>   @>>>>/s
+Hits          @>>>>>>    @>>>>>/s
 make_short($stats{'Qcache_hits'}), t($stats{'Qcache_hits'})
-Inserts       @>>>>>>   @>>>>/s
+Inserts       @>>>>>>    @>>>>>/s
 make_short($stats{'Qcache_inserts'}), t($stats{'Qcache_inserts'})
-Insrt:Prune @>>>>>>:1   @>>>>/s
+Insrt:Prune @>>>>>>:1    @>>>>>/s
 make_short($qc_ip_r), t($stats{'Qcache_inserts'} - $stats{'Qcache_lowmem_prunes'})
 Hit:Insert  @>>>>>>:1
 $qc_hi_r, t($qc_hi_r)
+.
+
+format SUBQUERYCACHE =
+
+__ Subquery Cache ______________________________________________________
+Hit ratio     @>>>>>%
+perc($stats{'Subquery_cache_hit'} / ($stats{'Subquery_cache_hit'} + $stats{'Subquery_cache_miss'}))
+Hits          @>>>>>>   @>>>>>/s
+make_short($stats{'Subquery_cache_hit'}), t($stats{'Subquery_cache_hit'})
+Miss          @>>>>>>   @>>>>>/s
+make_short($stats{'Subquery_cache_miss'}), t($stats{'Subquery_cache_miss'})
 .
 
 # Not really the end...
 format REPORT_END =
 
 __ Table Locks _________________________________________________________
-Waited      @>>>>>>>>  @>>>>>/s  %Total: @>>>>>
+Waited      @>>>>>>>>    @>>>>>/s  %Total: @>>>>>
 make_short($stats{'Table_locks_waited'}), t($stats{'Table_locks_waited'}), perc($stats{'Table_locks_waited'}, $stats{'Table_locks_waited'} + $stats{'Table_locks_immediate'});
-Immediate   @>>>>>>>>  @>>>>>/s
+Immediate   @>>>>>>>>    @>>>>>/s
 make_short($stats{'Table_locks_immediate'}), t($stats{'Table_locks_immediate'})
 
 __ Tables ______________________________________________________________
-Open        @>>>>>>>> of @>>>    %Cache: @>>>>>
+Open        @>>>>>>>> of @>>>>>    %Cache: @>>>>>
 $stats{'Open_tables'}, $vars{'table_cache'}, perc($stats{'Open_tables'}, $vars{'table_cache'})
-Opened      @>>>>>>>>  @>>>>>/s
+Opened      @>>>>>>>>    @>>>>>/s
 make_short($stats{'Opened_tables'}), t($stats{'Opened_tables'})
 
 __ Connections _________________________________________________________
-Max used    @>>>>>>>> of @>>>      %Max: @>>>>>
+Max used    @>>>>>>>> of @>>>>>      %Max: @>>>>>
 $stats{'Max_used_connections'}, $vars{'max_connections'}, perc($stats{'Max_used_connections'}, $vars{'max_connections'})
-Total       @>>>>>>>>  @>>>>>/s
+Total       @>>>>>>>>    @>>>>>/s
 make_short($stats{'Connections'}), t($stats{'Connections'})
 
 __ Created Temp ________________________________________________________
-Disk table  @>>>>>>>>  @>>>>>/s
-make_short($stats{'Created_tmp_disk_tables'}), t($stats{'Created_tmp_disk_tables'})
-Table       @>>>>>>>>  @>>>>>/s    Size: @>>>>>
+Disk table  @>>>>>>>>    @>>>>>/s   %Disk: @>>>>>
+make_short($stats{'Created_tmp_disk_tables'}), t($stats{'Created_tmp_disk_tables'}), perc($stats{'Created_tmp_disk_tables'}, $stats{'Created_tmp_tables'})
+Table       @>>>>>>>>    @>>>>>/s    Size: @>>>>>
 make_short($stats{'Created_tmp_tables'}), t($stats{'Created_tmp_tables'}), make_short($vars{'tmp_table_size'}, 1, 1)
-File        @>>>>>>>>  @>>>>>/s
+File        @>>>>>>>>    @>>>>>/s
 make_short($stats{'Created_tmp_files'}), t($stats{'Created_tmp_files'})
+.
+
+format THREADS =
+
+__ Threads _____________________________________________________________
+Running     @>>>>>>>> of @>>>>>
+$stats{'Threads_running'}, $stats{'Threads_connected'}
+Created     @>>>>>>>>    @>>>>>/s
+make_short($stats{'Threads_created'}), t($stats{'Threads_created'})
+Slow        @>>>>>>>>    @>>>>>/s
+$stats{'Slow_launch_threads'}, t($stats{'Slow_launch_threads'})
+.
+
+format THREADPERCONNECTION =
+Cached      @>>>>>>>> of @>>>>>      %Hit: @>>>>>
+$stats{'Threads_cached'}, $vars{'thread_cache_size'}, make_short(100 - perc($stats{'Threads_created'}, $stats{'Connections'}))
+.
+
+format THREADPOOL =
+Threadpool  @>>>>>>>> of @>>>>>     %Used: @>>>>>
+$stats{'Threadpool_threads'} + $stats{'Threadpool_idle_threads'}, $vars{'thread_pool_max_threads'}, make_short(perc($stats{'Threadpool_threads'} + $stats{'Threadpool_idle_threads'}, $vars{'thread_pool_max_threads'}))
+  Running   @>>>>>>>> of @>>>>>  %Running: @>>>>>
+$stats{'Threadpool_threads'}, $vars{'thread_pool_max_threads'}, make_short(perc($stats{'Threadpool_threads'}, $vars{'thread_pool_max_threads'}))
+  Idle      @>>>>>>>> of @>>>>>     %Idle: @>>>>>
+$stats{'Threadpool_idle_threads'}, $vars{'thread_pool_max_threads'}, make_short(perc($stats{'Threadpool_idle_threads'}, $vars{'thread_pool_max_threads'}))
 .
 
 format TAB =
 
-__ Threads _____________________________________________________________
-Running     @>>>>>>>> of @>>>
-$stats{'Threads_running'}, $stats{'Threads_connected'}
-Cached      @>>>>>>>> of @>>>      %Hit: @>>>>>
-$stats{'Threads_cached'}, $vars{'thread_cache_size'}, make_short(100 - perc($stats{'Threads_created'}, $stats{'Connections'}))
-Created     @>>>>>>>>  @>>>>>/s
-make_short($stats{'Threads_created'}), t($stats{'Threads_created'})
-Slow        @>>>>>>>>  @>>>>>/s
-$stats{'Slow_launch_threads'}, t($stats{'Slow_launch_threads'})
-
 __ Aborted _____________________________________________________________
-Clients     @>>>>>>>>  @>>>>>/s
+Clients     @>>>>>>>>    @>>>>>/s
 make_short($stats{'Aborted_clients'}), t($stats{'Aborted_clients'})
-Connects    @>>>>>>>>  @>>>>>/s
+Connects    @>>>>>>>>    @>>>>>/s
 make_short($stats{'Aborted_connects'}), t($stats{'Aborted_connects'})
 
 __ Bytes _______________________________________________________________
-Sent        @>>>>>>>>  @>>>>>/s
+Sent        @>>>>>>>>    @>>>>>/s
 make_short($stats{'Bytes_sent'}), t($stats{'Bytes_sent'})
-Received    @>>>>>>>>  @>>>>>/s
+Received    @>>>>>>>>    @>>>>>/s
 make_short($stats{'Bytes_received'}), t($stats{'Bytes_received'})
 .
 
 format IB =
 
 __ InnoDB Buffer Pool __________________________________________________
-Usage         @>>>>>> of @>>>>>>  %Used: @>>>>>
+Usage         @>>>>>> of  @>>>>>>  %Usage: @>>>>>
 make_short($ib_bp_used, 1), make_short($ib_bp_total, 1), perc($ib_bp_used, $ib_bp_total)
 Read hit      @>>>>>%
 $ib_bp_read_ratio;
 Pages
-  Free      @>>>>>>>>            %Total: @>>>>>
+  Free      @>>>>>>>>              %Total: @>>>>>
 make_short($stats{'Innodb_buffer_pool_pages_free'}), perc($stats{'Innodb_buffer_pool_pages_free'}, $stats{'Innodb_buffer_pool_pages_total'})
-  Data      @>>>>>>>>                    @>>>>> %Drty: @>>>>>
+  Data      @>>>>>>>>                      @>>>>>  %Drty: @>>>>>
 make_short($stats{'Innodb_buffer_pool_pages_data'}), perc($stats{'Innodb_buffer_pool_pages_data'}, $stats{'Innodb_buffer_pool_pages_total'}), perc($stats{'Innodb_buffer_pool_pages_dirty'}, $stats{'Innodb_buffer_pool_pages_data'})
-  Misc      @>>>>>>>>                    @>>>>>
+  Misc      @>>>>>>>>                      @>>>>>
   $stats{'Innodb_buffer_pool_pages_misc'}, perc($stats{'Innodb_buffer_pool_pages_misc'}, $stats{'Innodb_buffer_pool_pages_total'})
-Reads       @>>>>>>>>  @>>>>>/s  
+  Latched   @>>>>>>>>                      @>>>>>
+$stats{'Innodb_buffer_pool_pages_latched'}, perc($stats{'Innodb_buffer_pool_pages_latched'}, $stats{'Innodb_buffer_pool_pages_total'})
+Reads       @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_buffer_pool_read_requests'}), t($stats{'Innodb_buffer_pool_read_requests'})
-  From file @>>>>>>>>  @>>>>>/s          @>>>>>
+  From disk @>>>>>>>>    @>>>>>/s   %Disk: @>>>>>
 make_short($stats{'Innodb_buffer_pool_reads'}), t($stats{'Innodb_buffer_pool_reads'}), perc($stats{'Innodb_buffer_pool_reads'}, $stats{'Innodb_buffer_pool_read_requests'})
-  Ahead     @>>>>>>>>  @>>>>>/s
+#added
+  Ahead     @>>>>>>>>    @>>>>>/s
 $stats{'Innodb_buffer_pool_read_ahead'}, t($stats{'Innodb_buffer_pool_read_ahead'})
-  Ahead Rnd @>>>>>>>>  @>>>>>/s
+  Ah Rnd    @>>>>>>>>    @>>>>>/s
 $stats{'Innodb_buffer_pool_read_ahead_rnd'}, t($stats{'Innodb_buffer_pool_read_ahead_rnd'})
-  Ahead Evicted@>>>>>  @>>>>>/s
+#  Ahead Sql @>>>>>>>>    @>>>>>/s
+# $stats{'Innodb_buffer_pool_read_ahead_seq'}, t($stats{'Innodb_buffer_pool_read_ahead_seq'})
+#added
+  Ah Evicted   @>>>>>    @>>>>>/s
 $stats{'Innodb_buffer_pool_read_ahead_evicted'}, t($stats{'Innodb_buffer_pool_read_ahead_evicted'})
-Writes      @>>>>>>>>  @>>>>>/s
+Writes      @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_buffer_pool_write_requests'}), t($stats{'Innodb_buffer_pool_write_requests'})
-Flushes     @>>>>>>>>  @>>>>>/s
+Wait Free   @>>>>>>>>    @>>>>>/s   %Wait: @>>>>>
+$stats{'Innodb_buffer_pool_wait_free'}, t($stats{'Innodb_buffer_pool_wait_free'}), perc($stats{'Innodb_buffer_pool_wait_free'}, $stats{'Innodb_buffer_pool_write_requests'})
+Flushes     @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_buffer_pool_pages_flushed'}), t($stats{'Innodb_buffer_pool_pages_flushed'})
-Wait Free   @>>>>>>>>  @>>>>>/s
-$stats{'Innodb_buffer_pool_wait_free'}, t($stats{'Innodb_buffer_pool_wait_free'})
+.
+
+format IB_XTRADB =
+  LRU       @>>>>>>>>    @>>>>>/s   %LRU:  @>>>>>
+make_short($stats{'Innodb_buffer_pool_pages_lru_flushed'}), t($stats{'Innodb_buffer_pool_pages_lru_flushed'}), perc($stats{'Innodb_buffer_pool_pages_lru_flushed'}, $stats{'Innodb_buffer_pool_pages_flushed'})
 .
 
 format IB_LOCK =
 
 __ InnoDB Lock _________________________________________________________
-Waits       @>>>>>>>>  @>>>>>/s
+Waits       @>>>>>>>>    @>>>>>/s
 $stats{'Innodb_row_lock_waits'}, t($stats{'Innodb_row_lock_waits'})
 Current     @>>>>>>>>
 $stats{'Innodb_row_lock_current_waits'}
@@ -1261,15 +1534,20 @@ $stats{'Innodb_row_lock_time_avg'}
 $stats{'Innodb_row_lock_time_max'}
 .
 
+format IB_LOCK_XTRADB =
+Trx history @>>>>>>>>
+make_short($stats{'Innodb_history_list_length'})
+.
+
 format IB_DPR =
 
 __ InnoDB Data, Pages, Rows ____________________________________________
 Data
-  Reads     @>>>>>>>>  @>>>>>/s
+  Reads     @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_data_reads'}), t($stats{'Innodb_data_reads'})
-  Writes    @>>>>>>>>  @>>>>>/s
+  Writes    @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_data_writes'}), t($stats{'Innodb_data_writes'})
-  fsync     @>>>>>>>>  @>>>>>/s
+  fsync     @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_data_fsyncs'}), t($stats{'Innodb_data_fsyncs'})
   Pending
     Reads   @>>>>>>>>
@@ -1280,20 +1558,71 @@ $stats{'Innodb_data_pending_writes'}, t($stats{'Innodb_data_pending_writes'})
 $stats{'Innodb_data_pending_fsyncs'}, t($stats{'Innodb_data_pending_fsyncs'})
 
 Pages
-  Created   @>>>>>>>>  @>>>>>/s
+  Created   @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_pages_created'}), t($stats{'Innodb_pages_created'})
-  Read      @>>>>>>>>  @>>>>>/s
+  Read      @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_pages_read'}), t($stats{'Innodb_pages_read'})
-  Written   @>>>>>>>>  @>>>>>/s
+  Written   @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_pages_written'}), t($stats{'Innodb_pages_written'})
 
 Rows
-  Deleted   @>>>>>>>>  @>>>>>/s
+  Deleted   @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_rows_deleted'}), t($stats{'Innodb_rows_deleted'})
-  Inserted  @>>>>>>>>  @>>>>>/s
+  Inserted  @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_rows_inserted'}), t($stats{'Innodb_rows_inserted'})
-  Read      @>>>>>>>>  @>>>>>/s
+  Read      @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_rows_read'}), t($stats{'Innodb_rows_read'})
-  Updated   @>>>>>>>>  @>>>>>/s
+  Updated   @>>>>>>>>    @>>>>>/s
 make_short($stats{'Innodb_rows_updated'}), t($stats{'Innodb_rows_updated'})
+.
+
+format PAGECACHE_BUFF_MAX =
+
+__ Aria Pagecache ______________________________________________________
+Buffer used   @>>>>>> of  @>>>>>>   %Used: @>>>>>
+make_short($pagecache_buffer_used, 1), make_short($vars{'aria_pagecache_buffer_size'}, 1), perc($pagecache_buffer_used, $vars{'aria_pagecache_buffer_size'})
+.
+
+format PAGECACHE_BUFF_USAGE =
+  Current     @>>>>>>              %Usage: @>>>>>
+make_short($pagecache_buffer_usage, 1), perc($pagecache_buffer_usage, $vars{'aria_pagecache_buffer_size'})
+.
+
+format PAGECACHE_RATIOS =
+Write hit     @>>>>>%
+$pagecache_write_ratio
+Read hit      @>>>>>%
+$pagecache_read_ratio
+.
+
+format BINLOG =
+
+__ Binary Log Cache _____________________________________________________
+Disk use
+  Transactional		@>>>>>%
+perc($binlog_cache_ratio)
+  Non transactional	@>>>>>%
+perc($binlog_stmt_cache_ratio)
+.
+
+format TOKUDB =
+
+__ TokuDB ______________________________________________________________
+Cachetable    @>>>>>> of  @>>>>>>  %Usage: @>>>>>
+make_short($stats{Tokudb_cachetable_size_current}, 1), make_short($vars{tokudb_cache_size}, 1), perc($stats{Tokudb_cachetable_size_current}, $vars{tokudb_cache_size})
+  Miss        @>>>>>>    @>>>>>/s
+make_short($stats{'Tokudb_cachetable_miss'}), t($stats{'Tokudb_cachetable_miss'})
+  Evictions   @>>>>>>    @>>>>>/s
+make_short($stats{'Tokudb_cachetable_evictions'}), t($stats{'Tokudb_cachetable_evictions'})
+.
+
+format ROWS =
+
+__ Rows ________________________________________________________________
+Rows        @>>>>>>>>    @>>>>>/s
+make_short($rows), t($rows)
+  Using idx @>>>>>>>>    @>>>>>/s  %Index: @>>>>>
+make_short($rows_using_indexes), t($rows_using_indexes), perc($rows_using_indexes,$rows)
+Rows/question @>>>>>>
+make_short($rows/$questions)
 .

@@ -1,49 +1,58 @@
 <?php
+$version = 'v2.3.9 (2015 August 19)';
+/*
+ * Copyright 2006-2008 Douglas Robbins - http://www.labradordata.ca/
+ * Copyright 2014-2015 Claude Nadon - https://github.com/cloudeasy/vpsinfo
+
+    This script is intended as a general information/monitoring page for a Linux
+    Virtuozza or OpenVZ VPS (Virtual Private Server). It also runs fine on a
+    dedicated Linux machine or on KVM's.
+
+
+    ACKNOWLEDGEMENTS:
+        original vpsinfo was developped by Douglas Robbins at labradordata.ca
+
+        'vpsstat' output is based on a perl script by the same name developed by
+        ServInt technical staff.
+
+        This script may utilize third party software, if installed:
+
+            * MyTop by Jeremy D. Zawodny, GNU General Public License.
+                http://jeremy.zawodny.com/mysql/mytop/
+
+            * mysqlreport (a) by Daniel Nichter
+                http://hackmysql.com/mysqlreport
+
+            * mysqlreport (b) by Jean Weisbuch
+                https://github.com/jb-boin/mariadb/blob/5.5.30/debian/additions/mysqlreport
+
+            * vnstat by Teemu Toivola, GNU General Public License.
+                http://humdi.net/vnstat/
+
+        Thanks to the ServInt VPS forum members & staff for testing and suggestions.
+
+
+    TERMS & CONDITIONS:
+    This script is an original work and is copyright Douglas T. Robbins;
+
+    An acknowledgement of the original vpsinfo in your release would be appreciated.
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    The GNU General Public License is available at:
+    http://www.gnu.org/copyleft/gpl.html
+
+*/
+
 require 'config.php';
-
-$version = 'v2.3.8 (09 August 2015)';
-/* copyright 2015 Claude Nadon */
-
-// original vpsinfo by Douglas Robbins at  labradordata.ca  (NO LONGER ACTIVE)
-
-
-// This script is intended as a general information/monitoring page for a Linux
-// Virtuozza or OpenVZ VPS (Virtual Private Server). It also runs fine on a
-// dedicated Linux machine. 
-
-// Acknowledgements:
-//
-// 'vpsstat' output is based on a perl script by the same name developed by
-// ServInt technical staff.
-//
-// This script may utilize third party software if installed:
-// * MyTop by Jeremy D. Zawodny, GNU General Public License.
-//   http://jeremy.zawodny.com/mysql/mytop/
-// * mysqlreport by ?
-//   http://hackmysql.com/mysqlreport
-// * vnstat by Teemu Toivola, GNU General Public License.
-//   http://humdi.net/vnstat/
-
-// Thanks to the ServInt VPS forum members & staff for testing and suggestions.
-
-// Terms & Conditions:
-//
-// * This script is an original work and is copyright Douglas T. Robbins;
-// * This script is provided to you for use free of charge;
-// * You are permitted to modify the script for your own use;
-// * You may redistribute the script in its original form;
-// * You may not modify the script and publicly redistribute it, unless you
-//   make fundamental changes to the script to the extent that it may be
-//   considered a new work. In that case you should give your script a new name
-//   (i.e., do not use "vpsinfo" in the script name). An acknowledgement of the
-//   original vpsinfo in your release would be appreciated.
-
-// Liability:
-//
-// The author assumes no liability for damage or loss that might be associated 
-// with the use of this script.
-
-
 
 
 header('Cache-Control: no-cache, must-revalidate');
@@ -57,66 +66,63 @@ $timestamp  = time() + ($timeoffset * 3600);
 $localtime  = date('g:i a, M j', $timestamp);
 $shorttime  = date('g:i a', $timestamp);
 
-// Shell commands for main windows display ------------------------------------
-
+/*
+ * Shell commands for main windows display ------------------------------------
+ *
+*/
 $netstat_com = 'netstat -nt';
 $vnstat_com  = 'vnstat';
 $top_com     = 'top -n 1 -b';
 $pstree_com  = 'env LANG=C pstree -c';
 $df_com      = 'df -h --exclude-type=tmpfs';
 $tmp_com     = 'ls -a --ignore=sess_* /tmp';
+$mysql_rpt_name = '';
 
 if ($mysql_mon === 1) { // mytop
     $mysql_com = "env HOME=$userhome env TERM=xterm mytop -u $my_user -p $my_pass -d $my_db -b --nocolor";
 }
-elseif ($mysql_mon === 2) { // mysqlreport
-    $mysql_com  = "./mysqlreport.pl --host $my_host --socket $my_socket --port $my_port --user $my_user --password $my_pass --no-mycnf 2>&1";
-    $mysql_com2 = "./mysqlreport.pl --all --tab --host $my_host --socket $my_socket --port $my_port --user $my_user --password $my_pass --no-mycnf";
+elseif ($mysql_mon > 1) { // mysqlreport
+    $mysql_rpt_name = $mysql_mon === 2 ? 'mysqlreport_a.pl' : 'mysqlreport_b.pl';
+    $mysql_com  = "./{$mysql_rpt_name} --host $my_host --socket $my_socket --port $my_port --user $my_user --password $my_pass --no-mycnf 2>&1";
+    $mysql_com2 = "./{$mysql_rpt_name} --all --tab --host $my_host --socket $my_socket --port $my_port --user $my_user --password $my_pass --no-mycnf";
 }
 $allps_com = "ps -e | awk '{ print $4;}' | uniq";
+
 
 // GET and POST requests to this page -----------------------------------------
 
 // 'Sample current traffic' (vnstat):
 
-if (array_key_exists('traffic',$_GET) && $_GET['traffic']) {
+if (array_key_exists('traffic', $_GET) && $_GET['traffic']) {
     $io = trim(`vnstat -tr | grep --after-context=3 Traffic`);
     echo "<html>\n<body bgcolor='#000000' text='#CCCCCC' style='margin:10px 0 0 4px;padding:0'>\n<pre style='font-family:vt7X13,\"Courier New\",monospace;font-size:11px;line-height:14px'>$io</pre>\n</body>\n</html>";
     exit;
 }
 
 // 'Ports List':
-if (array_key_exists('showports',$_GET) && $_GET['showports']) {
-    $porttext = ' Port    What Is It?
------    -----------------------
-   25    SMTP
-   53    Bind nameserver
-   80    HTTP
-  110    POP
-  143    IMAP
-  443    HTTPS
-  465    SMTPS
-  993    IMAPS
-  995    POPS
- 2221    SSHD
- 3306    MySQL
- 8891    opendkim
- 8999    perl fcgi
- 9100    php-fpm fcgi
- 9980    HTTP Monitorix
-10000    HTTP Webmin
-10031    postgrey
-10040    postfwd
-11211    memcached
-22149:22249
-         VSFTPD';
-    echo "<html>\n<body bgcolor='#000000' text='#CCCCCC' style='margin:10px 0 0 30px;padding:0'>\n<pre style='font-family:vt7X13,\"Courier New\",monospace;font-size:11px;line-height:14px'>$porttext</pre>\n</body>\n</html>";
+if (array_key_exists('showports', $_GET) && $_GET['showports']) {
+    $p_len     = 12;
+    $p_str     = str_pad('Port', $p_len, ' ', STR_PAD_LEFT);
+    $port_text = substr($p_str, strlen($p_str) - $p_len) . "    What is it?\n";
+    $port_text .= str_repeat('-', $p_len) . '    ' . str_repeat('-', $p_len * 2) . "\n";
+
+    foreach ($port_list as $port => $desc) {
+        $p_str = str_pad($port, $p_len, ' ', STR_PAD_LEFT);
+        $port_text .= substr($p_str, strlen($p_str) - $p_len) . '    ' . $desc . "\n";
+    }
+    echo
+    "<html>
+        <head></head>
+        <body style='background-color:#000;color:#ccc;margin:10px 0 0 30px;padding:0;'>
+            <pre style='font-family:vt7X13,\"Courier New\",monospace;font-size:11px;line-height:14px;'>$port_text</pre>
+        </body>
+    </html>";
     exit;
 }
 
 // Show logged-in shell users:
 
-if (array_key_exists('users',$_GET) && $_GET['users']) {
+if (array_key_exists('users', $_GET) && $_GET['users']) {
     $users = trim(`w`);
     echo "<html>\n<body bgcolor='#000000' text='#CCCCCC' style='margin:10px 0 0 6px;padding:0'>\n<pre style='font-family:vt7X13,\"Courier New\",monospace;font-size:11px;line-height:14px'>Logged-in Users\n---------------\n$users</pre>\n</body>\n</html>";
     exit;
@@ -124,7 +130,7 @@ if (array_key_exists('users',$_GET) && $_GET['users']) {
 
 // Whois lookup:
 $whois = null;
-if (array_key_exists('whois',$_REQUEST) && $_REQUEST['whois']) {
+if (array_key_exists('whois', $_REQUEST) && $_REQUEST['whois']) {
     $whois = escapeshellcmd(trim($_REQUEST['whois']));
 }
 if ($whois) {
@@ -136,7 +142,7 @@ if ($whois) {
 
 // ls -al /tmp:
 
-if (array_key_exists('lsal',$_GET) && $_GET['lsal']) {
+if (array_key_exists('lsal', $_GET) && $_GET['lsal']) {
     $lsout = "Command: ls -al /tmp\n\n";
     $lsout .= `ls -al /tmp`;
     echo "<html>\n<body bgcolor='#000000' text='#CCCCCC' style='margin:10px 0 0 6px;padding:0'>\n<pre style='font-family:vt7X13,\"Courier New\",monospace;font-size:11px;line-height:14px'>$lsout</pre>\n</body>\n</html>";
@@ -145,7 +151,7 @@ if (array_key_exists('lsal',$_GET) && $_GET['lsal']) {
 
 // ps -aux (and mem):
 
-if (array_key_exists('psaux',$_GET) && $_GET['psaux']) {
+if (array_key_exists('psaux', $_GET) && $_GET['psaux']) {
     $psout = "Command: ps -aux\n\n";
     $psout .= `ps -aux`;
     $psout = str_replace('<', '&lt;', $psout);
@@ -158,7 +164,7 @@ if (array_key_exists('psaux',$_GET) && $_GET['psaux']) {
     exit;
 }
 
-if (array_key_exists('psmem',$_GET) && $_GET['psmem']) {
+if (array_key_exists('psmem', $_GET) && $_GET['psmem']) {
     $psout = "Command: ps -auxh --sort=size | tac\n\n";
     $psout .= "USER       PID %CPU %MEM   VSZ  RSS TTY      STAT START   TIME COMMAND\n";
     $psout .= `ps -auxh --sort=size | tac`;
@@ -169,13 +175,13 @@ if (array_key_exists('psmem',$_GET) && $_GET['psmem']) {
 
 // Command windows:
 
-if (array_key_exists('cmd',$_GET) && $_GET['cmd']) {
+if (array_key_exists('cmd', $_GET) && $_GET['cmd']) {
     $out   = null;
     $title = null;
     $cmd   = $_GET['cmd'];
     if ($cmd === 'top') {
-        $out  = trim(`top -n 1 -b`);
-        $out = preg_replace('/(top | up | days,|load average:|Tasks:|total,|running,|sleeping,|stopped,|zombie|Cpu\(s\):|us,|sy,|ni,|id,|wa,|hi,|si,|st|Mem:|used,|free,|buffers|Swap:| cached)/','<span class="top_highlite">$1</span>', $out);
+        $out = trim(`top -n 1 -b`);
+        $out = top_highlite($out);
 
         $meta = "<meta http-equiv=\"refresh\" content=\"" . ($top_refresh * 60) . "\">";
     }
@@ -232,8 +238,8 @@ if (array_key_exists('cmd',$_GET) && $_GET['cmd']) {
                     <input type='button' value='Months' onClick=\"window.location.replace('$scriptname?cmd=vnstat3');\" class='button' title='monthly totals'>
                     <input type='button' value='Close' onClick='window.close();' class='button' title='close window'>";
     }
-    
-    if (!$title) {
+
+    if ( ! $title) {
         $title = $cmd;
     }
     poppage($cmd, $out, $meta, $shorttime, $buttons, $title);
@@ -261,14 +267,14 @@ $lines    = explode("\n", $df_full);
 $prev     = null;
 $allfs    = '';
 $nb_lines = count($lines);
-for ($i = 0; $i < $nb_lines; $i++) {
+for ($i = 0; $i < $nb_lines; $i ++) {
     $line  = preg_replace('/ {1,99}/', '|', $lines[$i]);
     $parts = explode('|', $line);
     if ($parts[0] !== $prev) {
         $mnt    = $parts[5];
         $actual = " ($parts[2])";
-        if (!stristr($line, 'Filesystem')) {
-            $per = substr($parts[4], 0, -1);
+        if ( ! stristr($line, 'Filesystem')) {
+            $per = substr($parts[4], 0, - 1);
             if ($per > 90) {
                 $allfs .= "<span class='warn'>$mnt $parts[4]$actual</span>,&nbsp;";
             }
@@ -279,14 +285,22 @@ for ($i = 0; $i < $nb_lines; $i++) {
     }
     $prev = $parts[0];;
 }
-if (substr($allfs, -7) === ',&nbsp;') {
-    $allfs = substr($allfs, 0, -7);
+if (substr($allfs, - 7) === ',&nbsp;') {
+    $allfs = substr($allfs, 0, - 7);
 }
 
 // Other summary stats:
 
 $num_mysql = substr_count($pstree, 'mysqld');
+
+$httpd_title = 'number of apache processes and threads';
+$httpd_label = 'apache thds';
 $num_httpd = substr_count($pstree, 'httpd');
+if ($num_httpd === 0) {
+    $httpd_title = 'number of nginx processes and threads';
+    $httpd_label = 'nginx thds';
+    $num_httpd = substr_count($pstree, 'nginx');
+}
 $num_tcp   = substr_count($netstat, 'tcp');
 
 //Main page buttons:
@@ -299,7 +313,7 @@ $netcmdlink = "<a href='$scriptname?cmd=netstat' onClick=\"window.open('$scriptn
 if ($mysql_mon === 1) {
     $mycmdlink = "<a href='$scriptname?cmd=mytop' onClick=\"window.open('$scriptname?cmd=mytop', 'mytop', 'width=600, height=345, resizable'); return false\" title='open a mytop window' class='open'>&nbsp;+&nbsp;</a>";
 }
-elseif ($mysql_mon === 2) {
+elseif ($mysql_mon > 1) {
     $mycmdlink = "<a href='$scriptname?cmd=mysqlreport' onClick=\"window.open('$scriptname?cmd=mysqlreport', 'mysqlreport', 'width=600, height=480, resizable'); return false\" title='open a mysqlreport window' class='open'>&nbsp;+&nbsp;</a>";
 }
 
@@ -321,19 +335,19 @@ $vn_mons  = "<input type='button' value='Months' onClick=\"window.open('$scriptn
 
 // Buttons for netstat:
 $netstat_ntl = "<input type='button' value='Listening' onClick=\"window.open('$scriptname?cmd=netstat2', 'netstat', 'width=600, height=480, resizable'); return false\" class='button' title='show listening ports'>";
-$portslink   = "<input type='button' value='Port List' onClick=\"window.open('$scriptname?showports=1', 'portlist', 'width=300, height=330'); return false\" class='button' title='show explanatory list of ports'>";
+$portslink   = "<input type='button' value='Port List' onClick=\"window.open('$scriptname?showports=1', 'portlist', 'width=400, height=330'); return false\" class='button' title='show explanatory list of ports'>";
 
 // Button for mysqlreport:
 $mysqlrep_det = "<input type='button' value='Full Report' onClick=\"window.open('$scriptname?cmd=mysqlreport', 'mysqlreport', 'width=600, height=480, resizable'); return false\" class='button' title='show detailed mysqlreport'>";
 
 // Auto-refresh meta tag:
 
-if ($refresh) {
-    if ($refresh < 1) {
-        $refresh = 1;
+if ($page_refresh) {
+    if ($page_refresh < 1) {
+        $page_refresh = 1;
     }
-    $refresh *= 60;
-    $meta_refresh = "<meta http-equiv=\"refresh\" content=\"$refresh\">\n";
+    $page_refresh *= 60;
+    $meta_refresh = "<meta http-equiv=\"refresh\" content=\"$page_refresh\">\n";
 }
 
 // Load bar indicators:
@@ -392,18 +406,7 @@ else {
     $fgcolor15    = '#82826E';
 }
 
-// If users, hyperlink 'User(s)' in top display:
-
-if (!stristr($top, '0 users,')) {
-    $top = preg_replace('/(user|users),/', "<a href='$scriptname?users=1' onClick=\"window.open('$scriptname?users=1', 'users', 'width=625, height=300, scrollbars'); return false\" title='show users'>$1</a>,", $top);
-}
-else {
-    $top = preg_replace('/(user|users),/','<span class="top_highlite">$1</span>', $top);
-
-}
-//CN..put some color on keyword in header
-$top = preg_replace('/(top | up | days,|load average:|Tasks:|total,|running,|sleeping,|stopped,|zombie|Cpu\(s\):|Mem:|used,|free,|buffers|Swap:| cached)/',"<span class=\"top_highlite\">$1</span>", $top);
-$top = preg_replace('/%(us,|sy,|ni,|id,|wa,|hi,|si,|st)/',"%<span class=\"top_highlite\">$1</span>", $top);
+$top = top_highlite($top);
 
 
 // Mytop/mysqlreport and vnstat ------------------------------------------------
@@ -428,13 +431,13 @@ if ($mysql_mon === 1) {
     }
     $mysql_div = "<div class='subleftcmd'>$mycmdlink</div><div class='subleft'>mytop</div><div class='left'><pre>$mysql</pre></div>\n";
 }
-elseif ($mysql_mon === 2) {
+elseif ($mysql_mon > 1) {
     $full_report = '';
 
-    if (file_exists('mysqlreport.pl')) {
+    if (file_exists($mysql_rpt_name)) {
         clearstatcache();
 
-        if (is_executable('mysqlreport.pl')) {
+        if (is_executable($mysql_rpt_name)) {
 
             $mysql = trim(`$mysql_com`);
 
@@ -451,38 +454,38 @@ elseif ($mysql_mon === 2) {
             }
 
             elseif (stristr($mysql, 'Access denied for user')) {
-                $mysql     = "\n\nThe mysqlreport.pl script was denied access to mysql. Check that the mysql username
-&amp; password (in the vpsinfo configuration) are valid.\n\n";
+                $mysql     = "\n\nThe {$mysql_rpt_name} script was denied access to mysql. Check that the mysql username &amp; password (in the vpsinfo configuration) are valid.\n\n";
                 $mycmdlink = '';
             }
 
             elseif (stristr($mysql, 'bad interpreter')) {
-                $mysql     = "\n\nThe mysqlreport.pl script encountered a problem -- the first line does not have the
-correct path for perl on your system.\n\n";
+                $mysql     = "\n\nThe {$mysql_rpt_name} script encountered a problem -- the first line does not have the correct path for perl on your system.\n\n";
                 $mycmdlink = '';
             }
 
             else {
-                $mysql     = "\n\nAn unknown error occurred with the mysqlreport.pl script.\n\n";
+                $mysql     = "\n\nAn unknown error occurred with the {$mysql_rpt_name} script.\n\n";
                 $mycmdlink = '';
             }
         }
 
         else {
-            $mysql     = "\n\nThe mysqlreport.pl script could not be executed. Check the file ownership &amp; permissions.\n\n";
+            $mysql     = "\n\nThe {$mysql_rpt_name} script could not be executed. Check the file ownership &amp; permissions.\n\n";
             $mycmdlink = '';
         }
     }
 
     else {
-        $mysql     = "\n\nThe mysqlreport.pl script was not found.\n
-You need to get it from <a href='http://hackmysql.com/mysqlreport'>http://hackmysql.com/mysqlreport</a>, store it in the same
+        $mysql     = "\n\nThe {$mysql_rpt_name} script was not found.\n
+You need to get it from <a href='https://github.com/cloudeasy/vpsinfo'>https://github.com/cloudeasy/vpsinfo</a>, store it in the same
 directory as vpsinfo, and set correct ownership &amp; permissions.\n\n";
         $mycmdlink = '';
     }
 
-    $mysql_div = "<div class='subleftcmd'>$mycmdlink</div><div class='subleft'>mysqlreport</div>
-	<div class='left'><pre>$mysql</pre></div>$full_report\n";
+    $mysql_div =
+        "<div class='subleftcmd'>$mycmdlink</div>
+        <div class='subleft'>MySQL Report <span style=\"font-weight:normal;font-size: 0.85em;color: #aaa;\">({$mysql_rpt_name})</span></div>
+        <div class='left'><pre>$mysql</pre></div>$full_report\n";
 }
 
 if ($my_parts) {
@@ -494,15 +497,21 @@ if ($my_parts) {
         $mysql_units   = '';
     }
     else {
-        $mysql_units = strtoupper(substr($my_parts[1], -1));
+        $mysql_units = strtoupper(substr($my_parts[1], - 1));
         if ($mysql_units === 'M') {
-            $mysql_queries = round(substr($my_parts[1], 0, -1), 2);
+            $mysql_units = 'MB';
+            $mysql_queries = round(substr($my_parts[1], 0, - 1), 2);
         }
-        if ($mysql_units === 'K') {
-            $mysql_queries = round(substr($my_parts[1], 0, -1));
+        elseif ($mysql_units === 'K') {
+            $mysql_units = 'KB';
+            $mysql_queries = round(substr($my_parts[1], 0, - 1));
         }
     }
-    $mysql_head = "<td valign='top' nowrap><div class='head_label' style='padding-right:5px' title='number of mysql queries'>mysql queries</div><div class='head_num2' style='padding-right:5px'>$mysql_queries<span class='head_units'> $mysql_units</span></div></td>";
+    $mysql_head =
+        "<td valign='top' nowrap>
+            <div class='head_label' style='padding-right:5px' title='number of mysql queries'>mysql queries</div>
+            <div class='head_num2' style='padding-right:5px'>$mysql_queries<span class='head_units'> $mysql_units</span></div>
+        </td>";
 }
 
 $vnstat_div  = '';
@@ -519,9 +528,9 @@ if ($vnstat) {
         $vnstat_div = "<div class='subleft'>vnstat</div><div class='left'><pre>$vnstat</pre></div>";
     }
     elseif ($return === 1) {
-        $vnstat  = trim(`$vnstat_com`);
+        $vnstat        = trim(`$vnstat_com`);
         $today_pattern = '/^.*\btoday\b.*$/mi';
-        $today_mb = 0;
+        $today_mb      = 0;
         //vnstat may not display 'today' because it stopped gathering info.
         if (preg_match_all($today_pattern, $vnstat, $hits) > 0) {
             $todayline = $hits[0][0];
@@ -548,10 +557,17 @@ if ($vnstat) {
             $bw_today = "<span class='warn'>$bw_today</span>";
         }
 
-        $vnstat_head = "<td valign='top' nowrap><div class='head_label' title='amount of data transferred today'>transfer today</div><div class='head_num'>$bw_today<span class='head_units'> $bw_units</span></div></td>
-	";
-        $vnstat_div  = "<div class='subleftcmd'>$vncmdlink</div><div class='subleft'>vnstat</div><div class='leftscroll'><pre>$vnstat</pre></div>
-		<div class='toolbar'>$vn_sampl $vn_days $vn_mons</div>";
+        $vnstat_head =
+            "<td valign='top' nowrap>
+                <div class='head_label' title='amount of data transferred today'>transfer today</div>
+                <div class='head_num'>$bw_today<span class='head_units'> $bw_units</span></div>
+            </td>";
+
+        $vnstat_div  =
+            "<div class='subleftcmd'>$vncmdlink</div>
+            <div class='subleft'>vnstat</div>
+            <div class='leftscroll'><pre>$vnstat</pre></div>
+            <div class='toolbar'>$vn_sampl $vn_days $vn_mons</div>";
     }
 }
 // vpsstat-like processing of user_beancounters or RAM & swap -----------------
@@ -559,7 +575,10 @@ if ($vnstat) {
 list($vpsstat, $mem1, $mem1_units, $mem1_label, $mem1_tip, $mem2, $mem2_units, $mem2_label, $mem2_tip) = vpsstat();
 $vpsstat_div = '';
 if ($vpsstat) {
-    $vpsstat_div = "<div class='subleftcmd'>$vpscmdlink</div><div class='subleft'>vpsstat</div><div class='left'><pre>$vpsstat</pre></div>\n";
+    $vpsstat_div =
+        "<div class='subleftcmd'>$vpscmdlink</div>
+        <div class='subleft'>vpsstat <span style=\"font-weight:normal;font-size: 0.85em;color: #aaa;\">(/proc/bean_counters)</span></div>
+        <div class='left'><pre>$vpsstat</pre></div>\n";
 }
 
 // Process/daemon monitor -----------------------------------------------------
@@ -578,17 +597,35 @@ foreach ($allprocs as $proc) {
 
 // FUNCTIONS ===================================================================
 
-function netstat($netstat_com)
+function top_highlite($top)
 {
+    global $scriptname;
+
+    if ( ! stristr($top, '0 users,')) {
+        $top = preg_replace('/(user|users),/', "<a href='$scriptname?users=1' onClick=\"window.open('$scriptname?users=1', 'users', 'width=625, height=300, scrollbars'); return false\" title='show users'>$1</a>,", $top);
+    }
+    else {
+        $top = preg_replace('/(user|users),/', '<span class="top_highlite">$1</span>', $top);
+
+    }
+
+        //$out = preg_replace('/(^top | up | days,|load average:|Tasks:|total,|running,|sleeping,|stopped,|zombie|Cpu\(s\):|us,|sy,|ni,|id,|wa,|hi,|si,|st|Mem:|used,|free,|buffers|Swap:| cached)/', '<span class="top_highlite">$1</span>', $out);
+
+    $top = preg_replace('/(^top | up | days,|load average:|Tasks:|total,|running,|sleeping,|stopped,|zombie|Cpu\(s\):|Mem:|used,|free,|buffers|Swap:| cached)/', "<span class=\"top_highlite\">$1</span>", $top);
+    $top = preg_replace('/\%(us,|sy,|ni,|id,|wa,|hi,|si,|st)/', "%<span class=\"top_highlite\">$1</span>", $top);
+    return $top;
+}
+function netstat($netstat_com) {
     global $scriptname;
     $out      = trim(`$netstat_com`);
     $out      = str_replace(' Address', '_Address', $out);
     $lines    = explode("\n", $out);
     $all      = '';
-    $nb_lines = count($lines);
-    for ($i = 0; $i < $nb_lines; $i++) {
-        if ($i > 0) {
-            $line   = preg_replace('/ {1,99}/', '|', $lines[$i]);
+
+    $first_line = true;
+    foreach ($lines as $line) {
+        if (!$first_line) {
+            $line   = preg_replace('/ {1,99}/', '|', $line);
             $line   = str_replace('::ffff:', '', $line);
             $parts  = explode('|', $line);
             $col_0  = str_pad($parts[0], 5, ' ', STR_PAD_RIGHT);
@@ -601,7 +638,7 @@ function netstat($netstat_com)
                 $ip_str      = $col_4_parts[0];
             }
             $col_4 = str_pad($parts[4], 23, ' ', STR_PAD_RIGHT);
-            if ($ip_str) {
+            if (!preg_match('/(127\.0\.0\.1|0\.0\.0\.0)/',$ip_str)) {
                 $link  = "<a href='$scriptname?whois=$ip_str' onClick=\"window.open('$scriptname?whois=$ip_str', 'netstat', 'width=650, height=350, resizable, scrollbars'); return false\" title='whois $ip_str'>$ip_str</a>";
                 $col_4 = str_replace($ip_str, $link, $col_4);
             }
@@ -609,7 +646,8 @@ function netstat($netstat_com)
             $cols  = $col_0 . ' ' . $col_1 . ' ' . $col_2 . ' ' . $col_3 . ' ' . $col_4 . ' ' . $col_5;
         }
         else {
-            $cols = $lines[$i];
+            $first_line = false;
+            $cols = $line;
         }
         $all .= "\n" . $cols;
     }
@@ -618,8 +656,7 @@ function netstat($netstat_com)
     return $all;
 }
 
-function poppage($cmd, $out, $meta, $shorttime, $buttons, $title)
-{
+function poppage($cmd, $out, $meta, $shorttime, $buttons, $title) {
     echo "
 <!DOCTYPE HTML>
 <html>
@@ -718,8 +755,7 @@ function poppage($cmd, $out, $meta, $shorttime, $buttons, $title)
 </html>";
 }
 
-function vpsstat()
-{
+function vpsstat() {
     $vpsstat    = null;
     $mem1       = null;
     $mem1_units = null;
@@ -730,74 +766,103 @@ function vpsstat()
     $mem2_label = null;
     $mem2_tip   = null;
 
-    $rawbeans = `/bin/beanc 2> /dev/null`;
-    $ded      = false;
-    if (!$rawbeans) {
-        if (file_exists('/proc/user_beancounters')) {
-            $rawbeans = `cat /proc/user_beancounters 2> /dev/null`;
-        }
-        else {
-            $ded = true;
-        }
+    $rawbeans     = `/bin/beanc 2> /dev/null`;
+    $beans_exists = file_exists('/proc/user_beancounters');
+
+    if ( ! $rawbeans && $beans_exists) {
+        $rawbeans = `cat /proc/user_beancounters 2> /dev/null`;
     }
+
     if ($rawbeans) {
-        $lines    = explode("\n", $rawbeans);
-        $beans    = '';
-        $nb_lines = count($lines);
-        for ($i = 0; $i < $nb_lines; $i++) {
-            if (preg_match('/oomg|privv|numpr|numt|numo|numfi/', $lines[$i])) {
-                $line       = preg_replace('/ {1,99}/', '|', $lines[$i]);
+        $mb_per_page = shell_exec('getconf PAGESIZE') / (1024 * 1024);
+        $lines       = explode("\n", $rawbeans);
+        $beans       = '';
+
+        foreach ($lines as $line) {
+            if (preg_match('/oomg|privv|numpr|numt|numo|numfi/', $line)) {
+
+                $line       = preg_replace('/ {1,99}/', '|', $line);
                 $line_parts = explode('|', $line);
 
-                $is_oomg = (bool)stristr($lines[$i], 'oomg');
-                if ($is_oomg || stristr($lines[$i], 'privv')) {
-                    $cur = round($line_parts[2] / 256, 1) . ' MB';
-                    $rec = round($line_parts[3] / 256, 1) . ' MB';
-                    $bar = round($line_parts[4] / 256) . ' MB';
+                $cur = $cur_mb = $line_parts[2];
+                $max = $max_mb = $line_parts[3];
+                $bar = $bar_mb = $line_parts[4];
+                $lim = $lim_mb = $line_parts[5];
+
+
+                $is_oomg = (bool) stristr($line, 'oomg');
+                if ($is_oomg || stristr($line, 'privv')) {
+
+                    $cur_mb = round($cur * $mb_per_page, 1) . ' MB';
+                    $max_mb = round($max * $mb_per_page, 1) . ' MB';
+                    $bar_mb = round($bar * $mb_per_page) . ' MB';
+
                     if ($is_oomg) {
-                        $lim  = 'n/a';
-                        $mem1 = round($cur);
-                        if ($mem1 > $bar) {
-                            $mem1 = "<span class='warn'>$mem1</span>";
+                        $lim_mb = 'n/a';
+                        $mem1   = round($cur * $mb_per_page);
+                        if ($cur > $bar) {
+                            $mem1 = "<span class='warn'>$cur_mb</span>";
                         }
                         $mem1_label = 'oomguarpages';
-                        $oomg_per   = round($mem1 / $bar * 100);
+                        $oomg_per   = round(($cur / $bar) * 100);
                         $mem1_tip   = "title='oomguarpages is guaranteed memory; you are using $oomg_per% of your quota'";
                         $mem1_units = 'MB';
                     }
+
                     else {
-                        $lim        = round($line_parts[5] / 256) . ' MB';
-                        $mem2       = round($cur);
+                        $lim_mb     = round($lim * $mb_per_page) . ' MB';
+                        $mem2       = round($cur * $mb_per_page);
                         $mem2_label = 'privvmpages';
-                        $pmg_per    = round($mem2 / $lim * 100);
+                        $pmg_per    = round(($cur / $lim) * 100);
                         $mem2_tip   = "title='privvmpages is burstable memory; you are using $pmg_per% of your limit'";
                         $mem2_units = 'MB';
                     }
                 }
+
                 else {
-                    $cur = $line_parts[2];
-                    $rec = $line_parts[3];
-                    $bar = 'n/a';
-                    $lim = $line_parts[5];
+                    $bar_mb = 'n/a';
                 }
-                $beans .= str_pad($line_parts[1], 12) . str_pad($cur, 12, ' ', STR_PAD_LEFT) . str_pad($rec, 12, ' ', STR_PAD_LEFT) . str_pad($bar, 12, ' ', STR_PAD_LEFT) . str_pad($lim, 12, ' ', STR_PAD_LEFT) . str_pad($line_parts[6], 12, ' ', STR_PAD_LEFT) . "\n";
+
+
+                // vzopen LONG_MAX (32bits || 64bits)
+                if ($bar = 2147483647 || $bar === 9223372036854775807) {
+                    $bar_mb = 'Max';
+                }
+                if ($lim = 2147483647 || $lim === 9223372036854775807) {
+                    $lim_mb = 'Max';
+                }
+
+
+                $beans .=
+                    str_pad($line_parts[1], 12) .
+                    str_pad($cur_mb, 12, ' ', STR_PAD_LEFT) .
+                    str_pad($max_mb, 12, ' ', STR_PAD_LEFT) .
+                    str_pad($bar_mb, 12, ' ', STR_PAD_LEFT) .
+                    str_pad($lim_mb, 12, ' ', STR_PAD_LEFT) .
+                    str_pad($line_parts[6], 12, ' ', STR_PAD_LEFT) . "\n";
             }
         }
+
         $parts   = explode("\n", $beans);
         $vpsstat = "Resource         Current  Recent Max     Barrier       Limit    Failures\n";
         $vpsstat .= "------------  ----------  ----------  ----------  ----------  ----------\n";
         $vpsstat .= "$parts[2]\n$parts[0]\n$parts[1]\n$parts[3]\n$parts[4]\n$parts[5]";
     }
-    if (!$vpsstat && $ded === false) {
+
+    if ( ! $vpsstat && $beans_exists) {
+        $D             = DIRECTORY_SEPARATOR;
+        $beanc_install = "PATH-TO-VPSINFO{$D}installation{$D}beanc{$D}install.sh";
+
         $vpsstat = "\n
 It seems you're running Virtuozzo 3 or OpenVZ. In order to read the VPS stats
 (beancounters) you need a small 'helper' app. To install it do the following at
 a shell prompt as root:
 
-[root@vps] wget http://www.labradordata.ca/downloads/install_beanc.sh
-[root@vps] sh install_beanc.sh\n\n";
+[root@vps] sh {$beanc_install}\n\n";
     }
-    elseif ($ded === true) {
+
+
+    elseif ( ! $beans_exists) {
         $free = `free`;
         if ($free) {
             $pattern = "/^.*\bMem\b.*$/mi";
@@ -852,7 +917,7 @@ if ($gzip) {
     ob_start('ob_gzhandler');
 }
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
     <?php echo($meta_refresh); ?>
@@ -932,7 +997,6 @@ if ($gzip) {
         table.roof {
             background-color: #333333;
         }
-
 
         div.servstatus {
             font-family: Tahoma, "MS Sans Serif", Arial, Helvetica, sans-serif;
@@ -1125,7 +1189,7 @@ if ($gzip) {
             line-height: 14px;
             padding: 5px 5px 10px 6px;
             margin: 0;
-            overflow:auto;
+            overflow: auto;
         }
 
         a:link, a:visited, a:active {
@@ -1145,6 +1209,7 @@ if ($gzip) {
             padding: 25px 0 0 0;
             text-align: center;
         }
+
         /* use inside $top variable */
         .top_highlite {
             color: #00BBAE;
@@ -1241,10 +1306,12 @@ if ($gzip) {
                         <div class='head_label' title='number of current TCP connections'>tcp conn</div>
                         <div class='head_num2'><?php echo($num_tcp); ?></div>
                     </td>
-                    <td valign='top' nowrap>
-                        <div class='head_label' title='number of apache processes and threads'>apache thds</div>
-                        <div class='head_num2'><?php echo($num_httpd); ?></div>
-                    </td>
+                    <?php if ($num_httpd > 0) { ?>
+                        <td valign='top' nowrap>
+                           <div class='head_label' title='<?php echo($httpd_title); ?>'><?php echo($httpd_label); ?></div>
+                           <div class='head_num2'><?php echo($num_httpd); ?></div>
+                       </td>
+                    <?php } ?>
                     <td valign='top' nowrap>
                         <div class='head_label' title='number of mysql processes and threads'>mysql thds</div>
                         <div class='head_num2'><?php echo($num_mysql); ?></div>
@@ -1272,47 +1339,55 @@ if ($gzip) {
         <td valign='top' class='tdleft'>
             <div style='width:<?php echo($leftcol); ?>px'>
 
-            <div class='subleftcmd'><?php echo($topcmdlink); ?></div>
-            <div class='subleft'> top</div>
-            <div class='leftscroll'>
-                <pre><?php echo($top); ?></pre>
-            </div>
-            <div class='toolbar'><?php echo($psaux); ?><?php echo($psmem); ?></div>
+                <div class='subleftcmd'><?php echo($topcmdlink); ?></div>
+                <div class='subleft'> top</div>
+                <div class='leftscroll'>
+                    <pre><?php echo($top); ?></pre>
+                </div>
+                <div class='toolbar'><?php echo($psaux); ?><?php echo($psmem); ?></div>
 
-            <?php echo($vpsstat_div); ?>
-            <div class='subleftcmd'><?php echo($netcmdlink); ?></div>
-            <div class='subleft'><?php echo($netstat_com); ?></div>
-            <div class='leftscroll'>
-                <pre><?php echo($netstat); ?></pre>
-            </div>
-            <div class='toolbar_left'>
-                <table width='100%' cellspacing=0 cellpadding=0 border=0>
-                    <tr>
-                        <td>
-                            <form method='post' action='<?php echo($scriptname); ?>' class='whois' name='whois_form'>
-                                <span class='whois_title'>Whois: </span><input type='text' name='whois'
-                                                                               class='whois_input'
-                                                                               title='enter an IP address or domain'>
-                                <input type='submit' value='Lookup' class='button' title='do the lookup'
-                                       onClick="if (whois_form.whois.value=='') { alert('Please enter an IP address or domain');return false; }">
-                                <input type='reset' name='clear' value='Clear' class='button' title='clear the entry'>
-                            </form>
-                        </td>
-                        <td align='right'
-                            style='padding-right:5px'><?php echo($netstat_ntl); ?><?php echo($portslink); ?></td>
-                    </tr>
-                </table>
-            </div>
-            <?php echo($vnstat_div); ?>
-            <?php echo($mysql_div); ?>
+                <?php echo($vpsstat_div); ?>
+                <div class='subleftcmd'><?php echo($netcmdlink); ?></div>
+                <div class='subleft'><?php echo($netstat_com); ?></div>
+                <div class='leftscroll'>
+                    <pre><?php echo($netstat); ?></pre>
+                </div>
+                <div class='toolbar_left'>
+                    <table width='100%' cellspacing=0 cellpadding=0 border=0>
+                        <tr>
+                            <td>
+                                <form method='post'
+                                      action='<?php echo($scriptname); ?>'
+                                      class='whois'
+                                      name='whois_form'>
+                                    <span class='whois_title'>Whois: </span><input type='text' name='whois'
+                                                                                   class='whois_input'
+                                                                                   title='enter an IP address or domain'>
+                                    <input type='submit' value='Lookup' class='button' title='do the lookup'
+                                           onClick="if (whois_form.whois.value=='') { alert('Please enter an IP address or domain');return false; }
+                                           else {window.open('/vpsinfo/index.php?whois='+whois_form.whois.value, 'netstat', 'width=650, height=350, resizable, scrollbars'); return false }">
+                                    <input type='reset'
+                                           name='clear'
+                                           value='Clear'
+                                           class='button'
+                                           title='clear the entry'>
+                                </form>
+                            </td>
+                            <td align='right'
+                                style='padding-right:5px'><?php echo($netstat_ntl); ?><?php echo($portslink); ?></td>
+                        </tr>
+                    </table>
+                </div>
+                <?php echo($vnstat_div); ?>
+                <?php echo($mysql_div); ?>
             </div>
         </td>
         <td valign='top' class='tdright'>
-            <div class='subright'>pstree</div>
+            <div class='subright'>Processes <span style="font-weight:normal;font-size: 0.85em;color: #aaa;">(pstree)</span></div>
             <div class='right'>
                 <pre><?php echo($pstree); ?></pre>
             </div>
-            <div class='subright'>ls -a /tmp</div>
+            <div class='subright'>Temp Files <span style="font-weight:normal;font-size: 0.85em;color: #aaa;">(ls -a /tmp)</span></div>
             <div class='right' style='border-bottom:1px solid #444444'>
                 <div class='note'>Ignoring PHP session files (sess_*)</div>
                 <pre><?php echo($tmp_full); ?></pre>
@@ -1322,8 +1397,8 @@ if ($gzip) {
     </tr>
 </table>
 
-<div class='sig'>Originaly written by Douglas Robbins<br/>
-                 vpsinfo <?php echo($version); ?> Claude Nadon<br/>
+<div class='sig'>Originally written by Douglas Robbins<br/>
+                 <a href="https://github.com/cloudeasy/vpsinfo" target="_blank">vpsinfo</a>&nbsp;<?php echo($version); ?> Claude Nadon<br/>
     <?php echo($pagegen); ?><br>
 </div>
 

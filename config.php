@@ -1,66 +1,133 @@
 <?php
-// ERROR REPORTING
+/*
+ * Copyright 2006-2008 Douglas Robbins - http://www.labradordata.ca/
+ * Copyright 2014-2015 Claude Nadon - https://github.com/cloudeasy/vpsinfo
+*/
+
+
+/* Error reporting
+ *      Uncomment to get more debug info
+ *      Leave commented in production
+ */
 // error_reporting(E_ALL);
 // ini_set('display_errors', 'on');
-// ini_set('error_log', '/var/log/php-fpm/vpsinfo.log');
+// ini_set('error_log', '/var/log/vpsinfo.log');
 
-// vpsinfo by Douglas Robbins
-// Email: drobbins [at] labradordata.ca
-// Website: http://www.labradordata.ca/vpsinfo/
 
-date_default_timezone_set('America/New_York');
 
-// Mysql monitoring: 0 = none; 1 = mytop; 2 = mysqlreport
-$mysql_mon = 2;
-
-// Enable or disable vnstat. 0 = disable 1 = enable:
+/* Vnstat
+ *      0 = disabled
+ *      1 = enabled
+ */
 $vnstat = 1;
 
-// MyTop/mysqlreport needs MySQL access to read the processlist.
-// You may use any MySQL database.
-// If you don't use MyTop or mysqlreport just ignore this.
-$my_host   = '127.0.0.1';
-$my_port   = '3306';
-$my_socket = '/var/lib/mysql/mysql.sock';
-$my_db     = 'mysql';
-$my_user   = 'username';
-$my_pass   = 'password';
 
-// The account home directory for this mysql user:
-$userhome = '/root';
+/* Mysql report:
+ *      0 = none;
+ *      1 = mytop;
+ *      2 = mysqlreport_a   (mysql/percona)
+ *      3 = mysqlreport_b   (mysql/percona, MariaDB)
+ */
+$mysql_mon = 3;
 
-// Processes to monitor. Include any process that should normally appear in the
-// COMMAND column of the 'top' output. You can match a partial name, eg. 'ftpd'
-// matches 'pure-ftpd' or 'proftpd'. Possible additions include: 'cppop',
-// 'cpsrvd', 'exim', 'named'. This is a space-delimited list:
-$processes = 'crond dovecot nginx master memcached monitorix mysqld opendkim perl-fcgi php-fpm postfwd postgrey rsyslogd sshd lsyncd uvncrepeater vsftpd miniserv';
+/* Database access:
+ *      ignored if previous $mysql_mon = 0
+ */
+$my_socket = '/var/lib/mysql/mysql.sock';           // socket will be used in priority, if not empty.
+$my_host   = '127.0.0.1';                           // host:port will be used if no socket
+$my_port   = '3306';                                // prefer '127.0.0.1' to 'localhost'
+$my_db     = 'mysql';                               // only for mytop
+$my_user   = 'USERNAME';
+$my_pass   = 'PASSWORD';
 
-// Width of the left column in page display. You can adjust this if the
-// leftside boxes are too wide or too narrow:
+$userhome = '/USERNAME';                            // The account home directory for this mysql user:
+
+
+/* Processes to monitor:
+ *      - appears in page header
+ *      - process name must appear in `ps -e` command
+ *
+ * examples: ftpd cppop cpsrvd exim named sshd ...
+ *
+ * List is space delimited
+ */
+$processes = 'crond dovecot nginx master memcached monitorix mysqld php-fpm rsyslogd sshd vsftpd miniserv';
+
+/* Left column width
+ *      Adjust if leftside boxes are too wide or too narrow
+ *
+ *      Untested
+ */
 $leftcol = 590;
 
-// Difference in hours between your local time and server time:
+
+/* PHP timezone
+ *      - refer to php documentation for possible values
+ *      - comment line to use php.ini's timezone
+ *      - affects:
+ *          ~ php log
+ *          ~ most date/time functions called during this process
+ */
+date_default_timezone_set('America/New_York');
+/* Server - local time offset:
+ *      value in hour
+ *      + or -  0..23
+ *
+ * Time displayed in page header
+ */
 $timeoffset = 0;
 
-// Auto-refresh of the main page.
-// Set to 0 to disable, or specify a number of minutes:
-$refresh = 3;
 
-// Auto-refresh of command windows.
-// Set to 0 to disable, or specify a number of minutes:
+/* Main page auto-refresh time:
+ *      value in minutes
+ *      0 = disabled
+ */
+$page_refresh = 3;
+/* Popup windows auto-refresh times:
+ *      value in minutes
+ *      0 = disabled
+ */
 $top_refresh     = 5;
 $vpsstat_refresh = 5;
 $netstat_refresh = 5;
 $mysql_refresh   = 5;
 $vnstat_refresh  = 15;
 
-// Bandwidth alert. When the daily data transfer is greater than this, it is
-// highlighted in red. In MB:
+
+/* Bandwidth alert:
+ *      When the daily data transfer is greater, it will be highlighted in red.
+ *      value in MB
+ */
 $bw_alert = 1000;
 
-// Enable gzip compression for page output. 0 = disabled  1 = enabled
+/* gzip output compression:
+ *      0 = disabled
+ *      1 = enabled
+*/
 $gzip = 1;
 
+/* Port list helper/reminder
+ *      'Port List' button in the netstat bloc
+ *      Will display this information.
+ *
+ * Modify it to what is more relevant to your system (and you)
+ */
+$port_list = array(
+    '25'          => 'SMTP',
+    '53'          => 'Bind nameserver',
+    '80'          => 'HTTP',
+    '110'         => 'POP',
+    '143'         => 'IMAP',
+    '443'         => 'HTTPS',
+    '465'         => 'SMTPS',
+    '993'         => 'IMAPS',
+    '995'         => 'POPS',
+    '3306'        => 'MySQL',
+    '11211'       => 'memcached',
+);
+
+
+//CN..to keep my own config private while pushing to git
 if (file_exists('_config.php')) {
     include '_config.php';
 }
