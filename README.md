@@ -198,9 +198,9 @@ $ sh install.sh
 # Configuration
 This is a partial list of configuration entries. For the complete list and description, please refer to `config.php`.
 
-**$vnstat**
-`0 = disabled`
-`1 = enabled`
+**$vnstat**</br>
+`0 = disabled`</br>
+`1 = enabled`</br>
 
 **$mysql_mon**
 `0 = none`
