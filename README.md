@@ -247,19 +247,16 @@ Process names that appear in a `ps -e` command output are shown as 'up'.</br>
 ## Pop-ups
 ### Top
 
-Clic:</br>
 ![top_ps-aux_a.png](doc/images/top_ps-aux_a.png)
 
 Popup:</br>
 ![top_ps-aux_b.png](doc/images/top_ps-aux_b.png)
 
-Clic:</br>
 ![top_ps-aux_mem_a.png](doc/images/top_ps-aux_mem_a.png)
 
 Popup:</br>
 ![top_ps-aux_mem_b.png](doc/images/top_ps-aux_mem_b.png)
 
-Clic:</br>
 ![top_logged_in_user_a.png](doc/images/top_logged_in_user_a.png)
 
 Popup:</br>
@@ -267,13 +264,11 @@ Popup:</br>
 
 ### Netstat
 
-Clic:</br>
 ![netstat_listening_a.png](doc/images/netstat_listening_a.png)
 
 Popup:</br>
 ![netstat_listening_b.png](doc/images/netstat_listening_b.png)
 
-Clic:</br>
 ![netstat_portlist_a.png](doc/images/netstat_portlist_a.png)
 
 Popup:</br>
@@ -297,7 +292,6 @@ Popup:</br>
 ![vnstat_b_month.png](doc/images/vnstat_b_month.png)
 
 ### MySQL Report
-Clic:</br>
 ![mysql_full_report_a.png](doc/images/mysql_full_report_a.png)
 
 Popup:</br>
