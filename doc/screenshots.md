@@ -2,6 +2,7 @@
 ## Main page
 
 ![main.png](images/main.png)
+<img src="images/main.png" width="801">
 
 ## Pop-ups
 ### Top
