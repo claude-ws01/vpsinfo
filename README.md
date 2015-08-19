@@ -1,4 +1,4 @@
-![vpsinfo_logo.png](doc/images/vpsinfo_logo.png)
+![vpsinfo_logo.png](images/vpsinfo_logo.png)
 
 
 
@@ -9,6 +9,8 @@
 * [Requirements for Specific Blocs](#require_bloc)
 * [Configuration](#config)
 * [Screenshots](#screens)
+* [Acknowledgement](#acknowledgement)
+* [License](#license)
 
 
 
@@ -154,16 +156,16 @@ $ ifconfig
 ```
 you should see a `venet0` or a `eth0` for KVM's (do not use `venet0:x`).
 
-- update `/etc/sysconfig/vnstat`:
+- update `/etc/sysconfig/vnstat`:<br/>
 `VNSTAT_OPTIONS="-i venet0"`
 
-- you may also need to update `/etc/vnstat.conf`:
+- you may also need to update `/etc/vnstat.conf`:<br/>
 `interface "venet0"`
 
-- make sure `/etc/cron.d/vnstat` exists and contains:
+- make sure `/etc/cron.d/vnstat` exists and contains:<br/>
 `*/5 * * * * vnstat /usr/sbin/vnstat.cron`
 
-- you can test with:
+- you can test with:<br/>
 ```bash
 $ vnstat -tr
 ```
@@ -198,98 +200,132 @@ $ sh install.sh
 # Configuration
 This is a partial list of configuration entries. For the complete list and description, please refer to `config.php`.
 
-**$vnstat**</br>
-`0 = disabled`</br>
-`1 = enabled`</br>
+**$vnstat**<br/>
+`0 = disabled`<br/>
+`1 = enabled`<br/>
 
-**$mysql_mon**</br>
-`0 = none`</br>
-`1 = mytop`</br>
-`2 = mysqlreport_a   (mysql/percona)`</br>
-`3 = mysqlreport_b   (mysql/percona, MariaDB)`</br>
+**$mysql_mon**<br/>
+`0 = none`<br/>
+`1 = mytop`<br/>
+`2 = mysqlreport_a   (mysql/percona)`<br/>
+`3 = mysqlreport_b   (mysql/percona, MariaDB)`<br/>
 
-**$mysql_mon**</br>
-`0 = none`</br>
-`1 = mytop`</br>
-`2 = mysqlreport_a   (mysql/percona)`</br>
-`3 = mysqlreport_b   (mysql/percona, MariaDB)`</br>
+**$mysql_mon**<br/>
+`0 = none`<br/>
+`1 = mytop`<br/>
+`2 = mysqlreport_a   (mysql/percona)`<br/>
+`3 = mysqlreport_b   (mysql/percona, MariaDB)`<br/>
 
-**Database Access**</br>
-Not needed if `$mysql_mon = 0`.</br>
+**Database Access**<br/>
+Not needed if `$mysql_mon = 0`.<br/>
 
-Socket has priority if defined.</br>
-`$my_socket = '/var/lib/mysql/mysql.sock';`</br>
+Socket has priority if defined.<br/>
+`$my_socket = '/var/lib/mysql/mysql.sock';`<br/>
 
-Then host IP if no socket. Avoid 'localhost', save a dns lookup.</br>
-`$my_host   = '127.0.0.1';`</br>
-`$my_port   = '3306';`</br>
+Then host IP if no socket. Avoid 'localhost', save a dns lookup.<br/>
+`$my_host   = '127.0.0.1';`<br/>
+`$my_port   = '3306';`<br/>
 
-Only required by mytop</br>
-`$my_db     = 'mysql';`</br>
+Only required by mytop<br/>
+`$my_db     = 'mysql';`<br/>
 
-And authentication.</br>
-`$my_user   = 'USERNAME';`</br>
-`$my_pass   = 'PASSWORD';`</br>
-`$userhome = '/USERNAME';`</br>
+And authentication.<br/>
+`$my_user   = 'USERNAME';`<br/>
+`$my_pass   = 'PASSWORD';`<br/>
+`$userhome = '/USERNAME';`<br/>
 
-**$processes**</br>
-`crond dovecot nginx master memcached monitorix mysqld php-fpm rsyslogd sshd vsftpd miniserv`</br>
-Process names that appear in a `ps -e` command output are shown as 'up'.</br>
+**$processes**<br/>
+`crond dovecot nginx master memcached monitorix mysqld php-fpm rsyslogd sshd vsftpd miniserv`<br/>
+Process names that appear in a `ps -e` command output are shown as 'up'.<br/>
 
 
 
 
 <a name="screens"/>
 # Screenshots
-## Main page</br>
-![main.png](doc/images/main.png)
+## Main page<br/>
+![main.png](images/main.png)
 
 ## Pop-ups
 ### Top
 
-![top_ps-aux_a.png](doc/images/top_ps-aux_a.png)</br>
-Popup:</br>
-![top_ps-aux_b.png](doc/images/top_ps-aux_b.png)
+![top_ps-aux_a.png](images/top_ps-aux_a.png)<br/>
+Popup:<br/>
+![top_ps-aux_b.png](images/top_ps-aux_b.png)
 
-![top_ps-aux_mem_a.png](doc/images/top_ps-aux_mem_a.png)</br>
-Popup:</br>
-![top_ps-aux_mem_b.png](doc/images/top_ps-aux_mem_b.png)
+![top_ps-aux_mem_a.png](images/top_ps-aux_mem_a.png)<br/>
+Popup:<br/>
+![top_ps-aux_mem_b.png](images/top_ps-aux_mem_b.png)
 
-![top_logged_in_user_a.png](doc/images/top_logged_in_user_a.png)</br>
-Popup:</br>
-![top_logged_in_user_b.png](doc/images/top_logged_in_user_b.png)
+![top_logged_in_user_a.png](images/top_logged_in_user_a.png)<br/>
+Popup:<br/>
+![top_logged_in_user_b.png](images/top_logged_in_user_b.png)
 
 ### Netstat
 
-![netstat_listening_a.png](doc/images/netstat_listening_a.png)</br>
-Popup:</br>
-![netstat_listening_b.png](doc/images/netstat_listening_b.png)
+![netstat_listening_a.png](images/netstat_listening_a.png)<br/>
+Popup:<br/>
+![netstat_listening_b.png](images/netstat_listening_b.png)
 
-![netstat_portlist_a.png](doc/images/netstat_portlist_a.png)</br>
-Popup:</br>
-![netstat_portlist_b.png](doc/images/netstat_portlist_b.png)
+![netstat_portlist_a.png](images/netstat_portlist_a.png)<br/>
+Popup:<br/>
+![netstat_portlist_b.png](images/netstat_portlist_b.png)
 
 #### Whois
-In the netstat list:</br>
-![netstat_whois_a_foreign_a.png](doc/images/netstat_whois_a_foreign_a.png)</br>
-In the footer of the netstat bloc:</br>
-![netstat_whois_a_lookup_a.png](doc/images/netstat_whois_a_lookup_a.png)</br>
-Popup:</br>
-![netstat_whois_b.png](doc/images/netstat_whois_b.png)
+In the netstat list:<br/>
+![netstat_whois_a_foreign_a.png](images/netstat_whois_a_foreign_a.png)<br/>
+In the footer of the netstat bloc:<br/>
+![netstat_whois_a_lookup_a.png](images/netstat_whois_a_lookup_a.png)<br/>
+Popup:<br/>
+![netstat_whois_b.png](images/netstat_whois_b.png)
 
 ### Vnstat
-Clic any one:</br>
-![vnstat_a_days.png](doc/images/vnstat_a_days.png) ![vnstat_a_month.png](doc/images/vnstat_a_month.png) ![vnstat_a_sample.png](doc/images/vnstat_a_sample.png)</br>
-Popup:</br>
-![vnstat_b_month.png](doc/images/vnstat_b_month.png)
+Clic any one:<br/>
+![vnstat_a_days.png](images/vnstat_a_days.png) ![vnstat_a_month.png](images/vnstat_a_month.png) ![vnstat_a_sample.png](images/vnstat_a_sample.png)<br/>
+Popup:<br/>
+![vnstat_b_month.png](images/vnstat_b_month.png)
 
 ### MySQL Report
-![mysql_full_report_a.png](doc/images/mysql_full_report_a.png)</br>
-Popup:</br>
-![mysql_full_report_b.png](doc/images/mysql_full_report_b.png)
+![mysql_full_report_a.png](images/mysql_full_report_a.png)<br/>
+Popup:<br/>
+![mysql_full_report_b.png](images/mysql_full_report_b.png)
 
-### Temp files</br>
-![ls-al~tmp_a.png](doc/images/ls-al~tmp_a.png)</br>
-Popup:</br>
-![ls-al~tmp_b.png](doc/images/ls-al~tmp_b.png)
+### Temp files<br/>
+![ls-al~tmp_a.png](images/ls-al~tmp_a.png)<br/>
+Popup:<br/>
+![ls-al~tmp_b.png](images/ls-al~tmp_b.png)
+
+<a name="acknowledgement"/>
+# Acknowledgement
+Original vpsinfo was developped by Douglas T. Robbins at labradordata.ca
+
+This script may utilize third party software:
+
+* MyTop by Jeremy D. Zawodny,
+    http://jeremy.zawodny.com/mysql/mytop/
+
+* mysqlreport (a) by Daniel Nichter,
+    http://hackmysql.com/mysqlreport
+
+* mysqlreport (b) by Jean Weisbuch,
+    https://github.com/jb-boin/mariadb/blob/5.5.30/debian/additions/mysqlreport
+
+* vnstat by Teemu Toivola,
+    http://humdi.net/vnstat/
+
+<a name="license"/>
+# License
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+The GNU General Public License is available at:
+http://www.gnu.org/copyleft/gpl.html
+
 

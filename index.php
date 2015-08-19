@@ -1,8 +1,8 @@
 <?php
 $version = 'v2.3.9 (2015 August 19)';
 /*
- * Copyright 2006-2008 Douglas Robbins - http://www.labradordata.ca/
- * Copyright 2014-2015 Claude Nadon - https://github.com/cloudeasy/vpsinfo
+ * Copyright 2006-2008 Douglas T. Robbins - http://www.labradordata.ca/
+ * Copyright 2014-2015 Claude Nadon - https://github.com/claude-ws01/vpsinfo
 
     This script is intended as a general information/monitoring page for a Linux
     Virtuozza or OpenVZ VPS (Virtual Private Server). It also runs fine on a
@@ -10,10 +10,7 @@ $version = 'v2.3.9 (2015 August 19)';
 
 
     ACKNOWLEDGEMENTS:
-        original vpsinfo was developped by Douglas Robbins at labradordata.ca
-
-        'vpsstat' output is based on a perl script by the same name developed by
-        ServInt technical staff.
+        Original vpsinfo was developped by Douglas Robbins at labradordata.ca
 
         This script may utilize third party software, if installed:
 
@@ -29,11 +26,9 @@ $version = 'v2.3.9 (2015 August 19)';
             * vnstat by Teemu Toivola, GNU General Public License.
                 http://humdi.net/vnstat/
 
-        Thanks to the ServInt VPS forum members & staff for testing and suggestions.
-
 
     TERMS & CONDITIONS:
-    This script is an original work and is copyright Douglas T. Robbins;
+    This script is an original work by Douglas T. Robbins;
 
     An acknowledgement of the original vpsinfo in your release would be appreciated.
 
@@ -477,7 +472,7 @@ elseif ($mysql_mon > 1) {
 
     else {
         $mysql     = "\n\nThe {$mysql_rpt_name} script was not found.\n
-You need to get it from <a href='https://github.com/cloudeasy/vpsinfo'>https://github.com/cloudeasy/vpsinfo</a>, store it in the same
+You need to get it from <a href='https://github.com/claude-ws01/vpsinfo'>https://github.com/claude-ws01/vpsinfo</a>, store it in the same
 directory as vpsinfo, and set correct ownership &amp; permissions.\n\n";
         $mycmdlink = '';
     }
@@ -1398,7 +1393,7 @@ if ($gzip) {
 </table>
 
 <div class='sig'>Originally written by Douglas Robbins<br/>
-                 <a href="https://github.com/cloudeasy/vpsinfo" target="_blank">vpsinfo</a>&nbsp;<?php echo($version); ?> Claude Nadon<br/>
+                 <a href="https://github.com/claude-ws01/vpsinfo" target="_blank">vpsinfo</a>&nbsp;<?php echo($version); ?> Claude Nadon<br/>
     <?php echo($pagegen); ?><br>
 </div>
 

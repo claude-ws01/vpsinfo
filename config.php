@@ -1,7 +1,7 @@
 <?php
 /*
  * Copyright 2006-2008 Douglas Robbins - http://www.labradordata.ca/
- * Copyright 2014-2015 Claude Nadon - https://github.com/cloudeasy/vpsinfo
+ * Copyright 2014-2015 Claude Nadon - https://github.com/claude-ws01/vpsinfo
 */
 
 

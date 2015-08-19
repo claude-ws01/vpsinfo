@@ -5,7 +5,7 @@
 
 # mysqlreport makes an easy-to-read report of important MySQL status values.
 # Copyright 2006-2008 Daniel Nichter - http://hackmysql.com/mysqlreport
-# adapted 2014 Claude Nadon - https://github.com/cloudeasy/vpsinfo
+# adapted 2014 Claude Nadon - https://github.com/claude-ws01/vpsinfo
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
