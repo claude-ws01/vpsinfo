@@ -202,39 +202,39 @@ This is a partial list of configuration entries. For the complete list and descr
 `0 = disabled`</br>
 `1 = enabled`</br>
 
-**$mysql_mon**
-`0 = none`
-`1 = mytop`
-`2 = mysqlreport_a   (mysql/percona)`
-`3 = mysqlreport_b   (mysql/percona, MariaDB)`
+**$mysql_mon**</br>
+`0 = none`</br>
+`1 = mytop`</br>
+`2 = mysqlreport_a   (mysql/percona)`</br>
+`3 = mysqlreport_b   (mysql/percona, MariaDB)`</br>
 
-**$mysql_mon**
-`0 = none`
-`1 = mytop`
-`2 = mysqlreport_a   (mysql/percona)`
-`3 = mysqlreport_b   (mysql/percona, MariaDB)`
+**$mysql_mon**</br>
+`0 = none`</br>
+`1 = mytop`</br>
+`2 = mysqlreport_a   (mysql/percona)`</br>
+`3 = mysqlreport_b   (mysql/percona, MariaDB)`</br>
 
-**Database Access**
-Not needed if `$mysql_mon = 0`.
+**Database Access**</br>
+Not needed if `$mysql_mon = 0`.</br>
 
-Socket has priority if defined.
-`$my_socket = '/var/lib/mysql/mysql.sock';`
+Socket has priority if defined.</br>
+`$my_socket = '/var/lib/mysql/mysql.sock';`</br>
 
-Then host IP if no socket. Avoid 'localhost', save a dns lookup.
-`$my_host   = '127.0.0.1';`
-`$my_port   = '3306';`
+Then host IP if no socket. Avoid 'localhost', save a dns lookup.</br>
+`$my_host   = '127.0.0.1';`</br>
+`$my_port   = '3306';`</br>
 
-Only required by mytop
-`$my_db     = 'mysql';`
+Only required by mytop</br>
+`$my_db     = 'mysql';`</br>
 
-And authentication.
-`$my_user   = 'USERNAME';`
-`$my_pass   = 'PASSWORD';`
-`$userhome = '/USERNAME';`
+And authentication.</br>
+`$my_user   = 'USERNAME';`</br>
+`$my_pass   = 'PASSWORD';`</br>
+`$userhome = '/USERNAME';`</br>
 
-**$processes**
-`crond dovecot nginx master memcached monitorix mysqld php-fpm rsyslogd sshd vsftpd miniserv`
-Process names that appear in a `ps -e` command output are shown as 'up'.
+**$processes**</br>
+`crond dovecot nginx master memcached monitorix mysqld php-fpm rsyslogd sshd vsftpd miniserv`</br>
+Process names that appear in a `ps -e` command output are shown as 'up'.</br>
 
 
 
