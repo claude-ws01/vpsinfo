@@ -248,58 +248,48 @@ Process names that appear in a `ps -e` command output are shown as 'up'.</br>
 ### Top
 
 ![top_ps-aux_a.png](doc/images/top_ps-aux_a.png)
-
 Popup:</br>
 ![top_ps-aux_b.png](doc/images/top_ps-aux_b.png)
 
 ![top_ps-aux_mem_a.png](doc/images/top_ps-aux_mem_a.png)
-
 Popup:</br>
 ![top_ps-aux_mem_b.png](doc/images/top_ps-aux_mem_b.png)
 
 ![top_logged_in_user_a.png](doc/images/top_logged_in_user_a.png)
-
 Popup:</br>
 ![top_logged_in_user_b.png](doc/images/top_logged_in_user_b.png)
 
 ### Netstat
 
 ![netstat_listening_a.png](doc/images/netstat_listening_a.png)
-
 Popup:</br>
 ![netstat_listening_b.png](doc/images/netstat_listening_b.png)
 
 ![netstat_portlist_a.png](doc/images/netstat_portlist_a.png)
-
 Popup:</br>
 ![netstat_portlist_b.png](doc/images/netstat_portlist_b.png)
 
 #### Whois
 In the netstat list:</br>
 ![netstat_whois_a_foreign_a.png](doc/images/netstat_whois_a_foreign_a.png)
-
 In the footer of the netstat bloc:</br>
 ![netstat_whois_a_lookup_a.png](doc/images/netstat_whois_a_lookup_a.png)
-
 Popup:</br>
 ![netstat_whois_b.png](doc/images/netstat_whois_b.png)
 
 ### Vnstat
 Clic any one:</br>
 ![vnstat_a_days.png](doc/images/vnstat_a_days.png) ![vnstat_a_month.png](doc/images/vnstat_a_month.png) ![vnstat_a_sample.png](doc/images/vnstat_a_sample.png)
-
 Popup:</br>
 ![vnstat_b_month.png](doc/images/vnstat_b_month.png)
 
 ### MySQL Report
 ![mysql_full_report_a.png](doc/images/mysql_full_report_a.png)
-
 Popup:</br>
 ![mysql_full_report_b.png](doc/images/mysql_full_report_b.png)
 
 ### Temp files</br>
 ![ls-al~tmp_a.png](doc/images/ls-al~tmp_a.png)
-
 Popup:</br>
 ![ls-al~tmp_b.png](doc/images/ls-al~tmp_b.png)
 
