@@ -1,3 +1,9 @@
+v2.3.10 (2015 August 21)
+    - vpstats (/proc/bean_counters):
+        ~ revised formating
+        ~ added kmemsize and physpages
+    - documentation: modification
+
 v2.3.9 (2015 August 18)
     - bugfix: displaying vzopen LONG_MAX values in user_beancounters. Changed to 'Max'.
     - revision: now fetch system page size to accuratly calculate beanscounter's size in MB.

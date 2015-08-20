@@ -1,5 +1,5 @@
 <?php
-$version = 'v2.3.9 (2015 August 19)';
+$version = 'v2.3.10 (2015 August 21)';
 /*
  * Copyright 2006-2008 Douglas T. Robbins - http://www.labradordata.ca/
  * Copyright 2014-2015 Claude Nadon - https://github.com/claude-ws01/vpsinfo
@@ -65,12 +65,12 @@ $shorttime  = date('g:i a', $timestamp);
  * Shell commands for main windows display ------------------------------------
  *
 */
-$netstat_com = 'netstat -nt';
-$vnstat_com  = 'vnstat';
-$top_com     = 'top -n 1 -b';
-$pstree_com  = 'env LANG=C pstree -c';
-$df_com      = 'df -h --exclude-type=tmpfs';
-$tmp_com     = 'ls -a --ignore=sess_* /tmp';
+$netstat_com    = 'netstat -nt';
+$vnstat_com     = 'vnstat';
+$top_com        = 'top -n 1 -b';
+$pstree_com     = 'env LANG=C pstree -c';
+$df_com         = 'df -h --exclude-type=tmpfs';
+$tmp_com        = 'ls -a --ignore=sess_* /tmp';
 $mysql_rpt_name = '';
 
 if ($mysql_mon === 1) { // mytop
@@ -78,8 +78,8 @@ if ($mysql_mon === 1) { // mytop
 }
 elseif ($mysql_mon > 1) { // mysqlreport
     $mysql_rpt_name = $mysql_mon === 2 ? 'mysqlreport_a.pl' : 'mysqlreport_b.pl';
-    $mysql_com  = "./{$mysql_rpt_name} --host $my_host --socket $my_socket --port $my_port --user $my_user --password $my_pass --no-mycnf 2>&1";
-    $mysql_com2 = "./{$mysql_rpt_name} --all --tab --host $my_host --socket $my_socket --port $my_port --user $my_user --password $my_pass --no-mycnf";
+    $mysql_com      = "./{$mysql_rpt_name} --host $my_host --socket $my_socket --port $my_port --user $my_user --password $my_pass --no-mycnf 2>&1";
+    $mysql_com2     = "./{$mysql_rpt_name} --all --tab --host $my_host --socket $my_socket --port $my_port --user $my_user --password $my_pass --no-mycnf";
 }
 $allps_com = "ps -e | awk '{ print $4;}' | uniq";
 
@@ -290,13 +290,13 @@ $num_mysql = substr_count($pstree, 'mysqld');
 
 $httpd_title = 'number of apache processes and threads';
 $httpd_label = 'apache thds';
-$num_httpd = substr_count($pstree, 'httpd');
+$num_httpd   = substr_count($pstree, 'httpd');
 if ($num_httpd === 0) {
     $httpd_title = 'number of nginx processes and threads';
     $httpd_label = 'nginx thds';
-    $num_httpd = substr_count($pstree, 'nginx');
+    $num_httpd   = substr_count($pstree, 'nginx');
 }
-$num_tcp   = substr_count($netstat, 'tcp');
+$num_tcp = substr_count($netstat, 'tcp');
 
 //Main page buttons:
 
@@ -447,29 +447,24 @@ elseif ($mysql_mon > 1) {
                 // Change underscores to dashes for readability
                 $mysql = str_replace('_', '-', $mysql);
             }
-
             elseif (stristr($mysql, 'Access denied for user')) {
                 $mysql     = "\n\nThe {$mysql_rpt_name} script was denied access to mysql. Check that the mysql username &amp; password (in the vpsinfo configuration) are valid.\n\n";
                 $mycmdlink = '';
             }
-
             elseif (stristr($mysql, 'bad interpreter')) {
                 $mysql     = "\n\nThe {$mysql_rpt_name} script encountered a problem -- the first line does not have the correct path for perl on your system.\n\n";
                 $mycmdlink = '';
             }
-
             else {
                 $mysql     = "\n\nAn unknown error occurred with the {$mysql_rpt_name} script.\n\n";
                 $mycmdlink = '';
             }
         }
-
         else {
             $mysql     = "\n\nThe {$mysql_rpt_name} script could not be executed. Check the file ownership &amp; permissions.\n\n";
             $mycmdlink = '';
         }
     }
-
     else {
         $mysql     = "\n\nThe {$mysql_rpt_name} script was not found.\n
 You need to get it from <a href='https://github.com/claude-ws01/vpsinfo'>https://github.com/claude-ws01/vpsinfo</a>, store it in the same
@@ -494,11 +489,11 @@ if ($my_parts) {
     else {
         $mysql_units = strtoupper(substr($my_parts[1], - 1));
         if ($mysql_units === 'M') {
-            $mysql_units = 'MB';
+            $mysql_units   = 'MB';
             $mysql_queries = round(substr($my_parts[1], 0, - 1), 2);
         }
         elseif ($mysql_units === 'K') {
-            $mysql_units = 'KB';
+            $mysql_units   = 'KB';
             $mysql_queries = round(substr($my_parts[1], 0, - 1));
         }
     }
@@ -558,7 +553,7 @@ if ($vnstat) {
                 <div class='head_num'>$bw_today<span class='head_units'> $bw_units</span></div>
             </td>";
 
-        $vnstat_div  =
+        $vnstat_div =
             "<div class='subleftcmd'>$vncmdlink</div>
             <div class='subleft'>vnstat</div>
             <div class='leftscroll'><pre>$vnstat</pre></div>
@@ -592,8 +587,7 @@ foreach ($allprocs as $proc) {
 
 // FUNCTIONS ===================================================================
 
-function top_highlite($top)
-{
+function top_highlite($top) {
     global $scriptname;
 
     if ( ! stristr($top, '0 users,')) {
@@ -604,22 +598,24 @@ function top_highlite($top)
 
     }
 
-        //$out = preg_replace('/(^top | up | days,|load average:|Tasks:|total,|running,|sleeping,|stopped,|zombie|Cpu\(s\):|us,|sy,|ni,|id,|wa,|hi,|si,|st|Mem:|used,|free,|buffers|Swap:| cached)/', '<span class="top_highlite">$1</span>', $out);
+    //$out = preg_replace('/(^top | up | days,|load average:|Tasks:|total,|running,|sleeping,|stopped,|zombie|Cpu\(s\):|us,|sy,|ni,|id,|wa,|hi,|si,|st|Mem:|used,|free,|buffers|Swap:| cached)/', '<span class="top_highlite">$1</span>', $out);
 
     $top = preg_replace('/(^top | up | days,|load average:|Tasks:|total,|running,|sleeping,|stopped,|zombie|Cpu\(s\):|Mem:|used,|free,|buffers|Swap:| cached)/', "<span class=\"top_highlite\">$1</span>", $top);
     $top = preg_replace('/\%(us,|sy,|ni,|id,|wa,|hi,|si,|st)/', "%<span class=\"top_highlite\">$1</span>", $top);
+
     return $top;
 }
+
 function netstat($netstat_com) {
     global $scriptname;
-    $out      = trim(`$netstat_com`);
-    $out      = str_replace(' Address', '_Address', $out);
-    $lines    = explode("\n", $out);
-    $all      = '';
+    $out   = trim(`$netstat_com`);
+    $out   = str_replace(' Address', '_Address', $out);
+    $lines = explode("\n", $out);
+    $all   = '';
 
     $first_line = true;
     foreach ($lines as $line) {
-        if (!$first_line) {
+        if ( ! $first_line) {
             $line   = preg_replace('/ {1,99}/', '|', $line);
             $line   = str_replace('::ffff:', '', $line);
             $parts  = explode('|', $line);
@@ -633,7 +629,7 @@ function netstat($netstat_com) {
                 $ip_str      = $col_4_parts[0];
             }
             $col_4 = str_pad($parts[4], 23, ' ', STR_PAD_RIGHT);
-            if (!preg_match('/(127\.0\.0\.1|0\.0\.0\.0)/',$ip_str)) {
+            if ( ! preg_match('/(127\.0\.0\.1|0\.0\.0\.0)/', $ip_str)) {
                 $link  = "<a href='$scriptname?whois=$ip_str' onClick=\"window.open('$scriptname?whois=$ip_str', 'netstat', 'width=650, height=350, resizable, scrollbars'); return false\" title='whois $ip_str'>$ip_str</a>";
                 $col_4 = str_replace($ip_str, $link, $col_4);
             }
@@ -642,7 +638,7 @@ function netstat($netstat_com) {
         }
         else {
             $first_line = false;
-            $cols = $line;
+            $cols       = $line;
         }
         $all .= "\n" . $cols;
     }
@@ -774,25 +770,63 @@ function vpsstat() {
         $beans       = '';
 
         foreach ($lines as $line) {
-            if (preg_match('/oomg|privv|numpr|numt|numo|numfi/', $line)) {
+            if (preg_match('/kmem|oomg|privv|numpr|numt|numo|numfi|phys/', $line)) {
 
                 $line       = preg_replace('/ {1,99}/', '|', $line);
                 $line_parts = explode('|', $line);
 
-                $cur = $cur_mb = $line_parts[2];
-                $max = $max_mb = $line_parts[3];
-                $bar = $bar_mb = $line_parts[4];
-                $lim = $lim_mb = $line_parts[5];
+                if (count($line_parts) === 8) { // kmemsize has uid: in [0], taking out
+                    array_shift($line_parts);
+                }
 
+                $id   = $line_parts[1];
+                $cur  = $line_parts[2];
+                $bar  = $line_parts[4];
+                $lim  = $line_parts[5];
+                $fail = $line_parts[6];
 
-                $is_oomg = (bool) stristr($line, 'oomg');
-                if ($is_oomg || stristr($line, 'privv')) {
+                // formatting number values
+                $unit = 'Q';
+                if ($id === 'kmemsize') {
+                    $unit = 'B';
+                }
+                elseif (preg_match('/.+pages$/', $id)) {
+                    $unit = 'P';
+                }
 
-                    $cur_mb = round($cur * $mb_per_page, 1) . ' MB';
-                    $max_mb = round($max * $mb_per_page, 1) . ' MB';
-                    $bar_mb = round($bar * $mb_per_page) . ' MB';
+                $val_mb = array();
+                for ($i = 2; $i < 6; $i ++) {
 
-                    if ($is_oomg) {
+                    $val_mb[$i] = $val = (int) $line_parts[$i];
+
+                    if ($val === 2147483647 || $val === 9223372036854775807) {
+                        // vzopen LONG_MAX (32bits || 64bits)
+                        $val_mb[$i] = 'Max';
+                    }
+
+                    elseif ($unit !== 'Q') {
+
+                        if ($unit === 'P') { // pages
+                            $mb = $val * $mb_per_page;
+                        }
+                        else { // bytes
+                            $mb = $val / (1024 * 1024);
+                        }
+
+                        $val_mb[$i] = round($mb, 1) . ' MB';
+                        if ($mb > 9999) {
+                            $val_mb[$i] = round($mb / 1024, 1) . ' GB';
+                        }
+                    }
+                }
+
+                $cur_mb = $val_mb[2];
+                $max_mb = $val_mb[3];
+                $bar_mb = $val_mb[4];
+                $lim_mb = $val_mb[5];
+
+                if ($unit === 'P') {
+                    if ($id === 'oomguarpages') {
                         $lim_mb = 'n/a';
                         $mem1   = round($cur * $mb_per_page);
                         if ($cur > $bar) {
@@ -803,9 +837,7 @@ function vpsstat() {
                         $mem1_tip   = "title='oomguarpages is guaranteed memory; you are using $oomg_per% of your quota'";
                         $mem1_units = 'MB';
                     }
-
-                    else {
-                        $lim_mb     = round($lim * $mb_per_page) . ' MB';
+                    elseif ($id === 'privvmpages') {
                         $mem2       = round($cur * $mb_per_page);
                         $mem2_label = 'privvmpages';
                         $pmg_per    = round(($cur / $lim) * 100);
@@ -813,47 +845,47 @@ function vpsstat() {
                         $mem2_units = 'MB';
                     }
                 }
-
-                else {
-                    $bar_mb = 'n/a';
+                elseif ($unit === 'Q') {
+                    if ($id !== 'numfile') { // numproc, numtcpsock, numothersock
+                        $bar_mb = 'n/a';
+                    }
                 }
 
 
-                // vzopen LONG_MAX (32bits || 64bits)
-                if ($bar = 2147483647 || $bar === 9223372036854775807) {
-                    $bar_mb = 'Max';
-                }
-                if ($lim = 2147483647 || $lim === 9223372036854775807) {
-                    $lim_mb = 'Max';
-                }
-
-
-                $beans .=
-                    str_pad($line_parts[1], 12) .
+                $beans[$id] =
+                    str_pad($id, 12) .
                     str_pad($cur_mb, 12, ' ', STR_PAD_LEFT) .
                     str_pad($max_mb, 12, ' ', STR_PAD_LEFT) .
                     str_pad($bar_mb, 12, ' ', STR_PAD_LEFT) .
                     str_pad($lim_mb, 12, ' ', STR_PAD_LEFT) .
-                    str_pad($line_parts[6], 12, ' ', STR_PAD_LEFT) . "\n";
+                    str_pad($fail, 12, ' ', STR_PAD_LEFT) . "\n";
             }
         }
 
-        $parts   = explode("\n", $beans);
         $vpsstat = "Resource         Current  Recent Max     Barrier       Limit    Failures\n";
         $vpsstat .= "------------  ----------  ----------  ----------  ----------  ----------\n";
-        $vpsstat .= "$parts[2]\n$parts[0]\n$parts[1]\n$parts[3]\n$parts[4]\n$parts[5]";
+        $vpsstat .= $beans['kmemsize'];
+        $vpsstat .= $beans['physpages'];
+        $vpsstat .= $beans['oomguarpages'];
+        $vpsstat .= $beans['privvmpages'];
+        $vpsstat .= $beans['numproc'];
+        $vpsstat .= $beans['numtcpsock'];
+        $vpsstat .= $beans['numothersock'];
+        $vpsstat .= $beans['numfile'];
     }
+
 
     if ( ! $vpsstat && $beans_exists) {
         $D             = DIRECTORY_SEPARATOR;
-        $beanc_install = "PATH-TO-VPSINFO{$D}installation{$D}beanc{$D}install.sh";
+        $beanc_dir = "PATH-TO-VPSINFO{$D}beanc";
 
         $vpsstat = "\n
 It seems you're running Virtuozzo 3 or OpenVZ. In order to read the VPS stats
 (beancounters) you need a small 'helper' app. To install it do the following at
 a shell prompt as root:
 
-[root@vps] sh {$beanc_install}\n\n";
+[root@vps] cd {$beanc_dir}
+[root@vps] sh install.sh\n\n";
     }
 
 
@@ -900,12 +932,16 @@ a shell prompt as root:
     return array($vpsstat, $mem1, $mem1_units, $mem1_label, $mem1_tip, $mem2, $mem2_units, $mem2_label, $mem2_tip);
 }
 
+
+/*
+ *      MAIN PAGE OUTPUT ============================================================
+ *
+*/
+
 $mtime     = explode(' ', microtime());
 $tend      = $mtime[0] + $mtime[1];
 $totaltime = round(($tend - $tstart), 4);
 $pagegen   = "page generated in $totaltime sec.";
-
-// MAIN PAGE OUTPUT ============================================================
 
 if ($gzip) {
     ini_set('zlib.output_compression_level', 1);
@@ -1303,9 +1339,10 @@ if ($gzip) {
                     </td>
                     <?php if ($num_httpd > 0) { ?>
                         <td valign='top' nowrap>
-                           <div class='head_label' title='<?php echo($httpd_title); ?>'><?php echo($httpd_label); ?></div>
-                           <div class='head_num2'><?php echo($num_httpd); ?></div>
-                       </td>
+                            <div class='head_label'
+                                 title='<?php echo($httpd_title); ?>'><?php echo($httpd_label); ?></div>
+                            <div class='head_num2'><?php echo($num_httpd); ?></div>
+                        </td>
                     <?php } ?>
                     <td valign='top' nowrap>
                         <div class='head_label' title='number of mysql processes and threads'>mysql thds</div>
@@ -1378,11 +1415,13 @@ if ($gzip) {
             </div>
         </td>
         <td valign='top' class='tdright'>
-            <div class='subright'>Processes <span style="font-weight:normal;font-size: 0.85em;color: #aaa;">(pstree)</span></div>
+            <div class='subright'>Processes
+                <span style="font-weight:normal;font-size: 0.85em;color: #aaa;">(pstree)</span></div>
             <div class='right'>
                 <pre><?php echo($pstree); ?></pre>
             </div>
-            <div class='subright'>Temp Files <span style="font-weight:normal;font-size: 0.85em;color: #aaa;">(ls -a /tmp)</span></div>
+            <div class='subright'>Temp Files
+                <span style="font-weight:normal;font-size: 0.85em;color: #aaa;">(ls -a /tmp)</span></div>
             <div class='right' style='border-bottom:1px solid #444444'>
                 <div class='note'>Ignoring PHP session files (sess_*)</div>
                 <pre><?php echo($tmp_full); ?></pre>
@@ -1393,7 +1432,8 @@ if ($gzip) {
 </table>
 
 <div class='sig'>Originally written by Douglas Robbins<br/>
-                 <a href="https://github.com/claude-ws01/vpsinfo" target="_blank">vpsinfo</a>&nbsp;<?php echo($version); ?> Claude Nadon<br/>
+    <a href="https://github.com/claude-ws01/vpsinfo"
+       target="_blank">vpsinfo</a>&nbsp;<?php echo($version); ?> Claude Nadon<br/>
     <?php echo($pagegen); ?><br>
 </div>
 

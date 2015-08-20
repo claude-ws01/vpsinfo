@@ -1,7 +1,7 @@
 ![vpsinfo_logo.png](images/vpsinfo_logo.png)
 
 
-(updated: 2015-08-20)
+(updated: 2015-08-21)
 ##### Table of Contents
 * [Introduction](#intro)
 * [General Requirements](#require)
@@ -10,7 +10,7 @@
 * [Requirements for Specific Blocs](#require_bloc)
 * [Configuration](#config)
 * [Screenshots](#screens)
-* [Acknowledgement](#acknowledgement)
+* [Acknowledgements](#acknowledgements)
 * [License](#license)
 
 
@@ -202,7 +202,7 @@ beanc is a 10 lines C program that fetches the old, but still valid, [/proc/user
 
 Installation on CentOS 6.x:
 ```bash
-$ cd VPSINFO-FOLDER-PATH/installation/beanc/
+$ cd VPSINFO-FOLDER-PATH/beanc/
 $ sh install.sh
 ```
 
@@ -300,8 +300,8 @@ Popup:<br/>
 Popup:<br/>
 ![ls-al~tmp_b.png](images/ls-al~tmp_b.png)
 
-<a name="acknowledgement"/>
-# Acknowledgement
+<a name="acknowledgements"/>
+# Acknowledgements
 Original VPSinfo was developped by Douglas T. Robbins at [labradordata.ca](http://www.labradordata.ca)
 
 This script may utilize third party software:
