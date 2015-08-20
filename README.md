@@ -307,16 +307,16 @@ Original VPSinfo was developped by Douglas T. Robbins at [labradordata.ca](http:
 This script may utilize third party software:
 
 * MyTop by Jeremy D. Zawodny,<br/>
-    [http://jeremy.zawodny.com/mysql/mytop/]()
+    <http://jeremy.zawodny.com/mysql/mytop>
 
 * mysqlreport (a) by Daniel Nichter,<br/>
-    [http://hackmysql.com/mysqlreport]()
+    <http://hackmysql.com/mysqlreport>
 
 * mysqlreport (b) by Jean Weisbuch,<br/>
-    [https://github.com/jb-boin/mariadb/blob/5.5.30/debian/additions/mysqlreport]()
+    <http://github.com/jb-boin/mariadb/blob/5.5.30/debian/additions/mysqlreport>
 
 * vnstat by Teemu Toivola,<br/>
-    [http://humdi.net/vnstat/]()
+    <http://humdi.net/vnstat>
 
 <a name="license"/>
 # License
