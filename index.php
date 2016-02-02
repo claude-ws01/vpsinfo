@@ -1,5 +1,5 @@
 <?php
-$version = 'v2.3.10 (2015 August 21)';
+$version = 'v2.3.11 (2016 February 2)';
 /*
  * Copyright 2006-2008 Douglas T. Robbins - http://www.labradordata.ca/
  * Copyright 2014-2015 Claude Nadon - https://github.com/claude-ws01/vpsinfo
@@ -409,16 +409,16 @@ $top = top_highlite($top);
 $my_parts   = null;
 $mysql_head = '';
 if ($mysql_mon === 1) {
-    exec('which mytop', $output, $return);
+    exec($mysql_com, $output, $return);
     $mysql = '';
 
-    if ($return === 0) {
-        $mysql      = "\n\nMytop is not installed. See the <a href='http://jeremy.zawodny.com/mysql/mytop/'>mytop website</a> for information.\n\n";
+    if ($return !== 0 || count($output) === 0) {
+        $mysql      = "\n\nMytop does not seem to be installed. See the <a href='http://jeremy.zawodny.com/mysql/mytop/'>mytop website</a> for information.\n\n";
         $mycmdlink  = '';
         $mysql_head = '';
     }
-    elseif ($return === 1) {
-        $mysql   = trim(`$mysql_com`);
+    else {
+        $mysql   = implode(PHP_EOL, $output) . PHP_EOL;
         $pattern = "/^.*\bQueries\b.*$/mi";
         preg_match($pattern, $mysql, $hits);
         $queryline = trim($hits[0]);
@@ -507,18 +507,18 @@ if ($my_parts) {
 $vnstat_div  = '';
 $vnstat_head = '';
 if ($vnstat) {
-    exec('which vnstat', $output, $return);
 
-    if ($return === 0) {
-        $vnstat     = "\n\nVnstat is not installed. See the <a href='http://humdi.net/vnstat/'>vnstat website</a> for information.\n\n";
+    exec($vnstat_com, $output, $return);
+    if ($return !== 0 || count($output) === 0) {
+        $vnstat     = "\n\nVnstat does not seem to be installed. See the <a href='http://humdi.net/vnstat/'>vnstat website</a> for information.\n\n";
         $vncmdlink  = '';
         $vn_sampl   = '';
         $vn_days    = '';
         $vn_mons    = '';
         $vnstat_div = "<div class='subleft'>vnstat</div><div class='left'><pre>$vnstat</pre></div>";
     }
-    elseif ($return === 1) {
-        $vnstat        = trim(`$vnstat_com`);
+    else {
+        $vnstat        = implode(PHP_EOL, $output) . PHP_EOL;
         $today_pattern = '/^.*\btoday\b.*$/mi';
         $today_mb      = 0;
         //vnstat may not display 'today' because it stopped gathering info.
@@ -876,7 +876,7 @@ function vpsstat() {
 
 
     if ( ! $vpsstat && $beans_exists) {
-        $D             = DIRECTORY_SEPARATOR;
+        $D         = DIRECTORY_SEPARATOR;
         $beanc_dir = "PATH-TO-VPSINFO{$D}beanc";
 
         $vpsstat = "\n

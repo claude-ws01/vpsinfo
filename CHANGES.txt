@@ -1,3 +1,6 @@
+v2.3.11 (2016 February 2)
+    - bugfix: result-less validation of vnstat & mytop presence. THX to Matthew
+
 v2.3.10 (2015 August 21)
     - vpstats (/proc/bean_counters):
         ~ revised formating
